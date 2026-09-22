@@ -44,40 +44,46 @@ export default function Nav() {
   }
 
   return (
-    <nav className="fixed top-0 inset-x-0 z-40 backdrop-blur bg-white/85 border-b border-black/5">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-display font-bold text-lg">
+    <nav className="fixed top-4 sm:top-6 inset-x-0 z-40 flex justify-center px-4">
+      <div className="w-full max-w-5xl bg-black rounded-full shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] px-3 sm:px-5 h-14 flex items-center justify-between gap-4">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
           <span
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
-            style={{ background: "linear-gradient(135deg,var(--indigo),var(--violet-2))" }}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-black font-black text-sm"
+            style={{ background: "var(--indigo)" }}
           >
             Q
           </span>
-          Quest Board
+          <span className="font-display font-black text-white text-[15px] tracking-tight hidden sm:inline">
+            Quest Board
+          </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[var(--ink)]">
+        <div className="hidden md:flex items-center gap-7 text-sm font-medium text-white/85">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className={`nav-link ${pathname === l.href ? "active" : ""}`}>
+            <Link
+              key={l.href}
+              href={l.href}
+              className={`nav-link !text-white ${pathname === l.href ? "active" : "opacity-85 hover:opacity-100"}`}
+            >
               {l.label}
             </Link>
           ))}
         </div>
 
-        <div className="flex items-center gap-3 relative">
+        <div className="flex items-center gap-2 relative shrink-0">
           {status === "authenticated" ? (
             <>
-              <span className="text-sm text-[var(--ink)]/60 hidden sm:inline">
+              <span className="text-xs text-white/50 hidden lg:inline mr-1">
                 {session.user?.name?.split(" ")[0]}
                 {session.user?.role ? ` · ${session.user.role}` : ""}
               </span>
 
-              <button className="btn btn-outline btn-sm" onClick={() => setSwitcherOpen((o) => !o)}>
-                Switch account
+              <button className="btn btn-light btn-sm" onClick={() => setSwitcherOpen((o) => !o)}>
+                Switch
               </button>
 
               {switcherOpen && (
-                <div className="absolute top-12 right-24 w-64 bg-white rounded-2xl shadow-xl border border-black/10 p-2 z-50">
+                <div className="absolute top-14 right-16 w-64 bg-white rounded-2xl shadow-xl border border-black/10 p-2 z-50">
                   {otherAccounts.length === 0 ? (
                     <p className="text-xs text-[var(--ink)]/45 p-3">
                       No other accounts remembered on this browser yet. Sign up or sign in with another account to add one here.
@@ -105,12 +111,12 @@ export default function Nav() {
                 </div>
               )}
 
-              <button className="btn btn-outline btn-sm" onClick={() => signOut({ callbackUrl: "/" })}>
+              <button className="btn btn-ghost btn-sm" onClick={() => signOut({ callbackUrl: "/" })}>
                 Sign out
               </button>
             </>
           ) : (
-            <button className="btn btn-outline btn-sm" onClick={() => router.push("/login")}>
+            <button className="btn btn-light btn-sm" onClick={() => router.push("/login")}>
               Sign in
             </button>
           )}

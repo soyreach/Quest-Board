@@ -217,7 +217,7 @@ export default function BoardClient({ initialQuests }) {
                   className="rounded-xl border-2 border-dashed p-6 text-center cursor-pointer mb-3 transition"
                   style={{
                     borderColor: dragOver ? "var(--indigo)" : "rgba(0,0,0,0.15)",
-                    background: dragOver ? "rgba(91,76,245,0.06)" : "rgba(255,255,255,0.5)",
+                    background: dragOver ? "rgba(56,198,236,0.08)" : "rgba(255,255,255,0.5)",
                   }}
                 >
                   <input
