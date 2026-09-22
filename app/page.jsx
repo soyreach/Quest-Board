@@ -3,8 +3,8 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <div className="page-enter">
-      <div className="hero-bg text-white">
-        <div className="max-w-7xl mx-auto px-6 pt-20 pb-28 relative">
+      <div className="hero-bg text-white -mt-24">
+        <div className="max-w-7xl mx-auto px-6 pt-36 pb-28 relative">
           <div className="max-w-2xl">
             <span className="badge bg-white/10 border border-white/20 text-white/90 mb-6">
               Built for AUPP · open to any student or faculty account
@@ -83,7 +83,7 @@ export default function HomePage() {
         <div className="stat-card text-white p-10 md:p-14 relative overflow-hidden">
           <div
             className="absolute -right-24 -top-24 w-96 h-96 rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(91,76,245,0.35), transparent 70%)" }}
+            style={{ background: "radial-gradient(circle, rgba(56,198,236,0.35), transparent 70%)" }}
           />
           <span className="badge bg-white/10 border border-white/15 mb-5 relative">Outcomes</span>
           <h2 className="font-display font-bold text-3xl md:text-4xl mb-3 relative max-w-lg">

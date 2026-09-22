@@ -39,10 +39,7 @@ export async function POST(req) {
 
   const submission = await Submission.findById(submissionId);
   if (!submission) {
-    return NextResponse.json(
-      { error: "Submission not found" },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: "Submission not found" }, { status: 404 });
   }
   const quest = await Quest.findById(submission.quest).lean();
 
@@ -69,10 +66,7 @@ export async function POST(req) {
   }
 
   // --- Real similarity check against this quest's other submissions ---
-  const others = await Submission.find({
-    quest: quest._id,
-    _id: { $ne: submission._id },
-  })
+  const others = await Submission.find({ quest: quest._id, _id: { $ne: submission._id } })
     .populate("student", "name")
     .lean();
 
@@ -88,27 +82,19 @@ export async function POST(req) {
 
   // --- AI feedback + heuristic AI-content guess ---
   const rubricText = (quest.rubric || [])
-    .map(
-      (r) =>
-        `- ${r.criterion} (${r.weightPoints}% — automated check: ${r.automatedCheckable})`,
-    )
+    .map((r) => `- ${r.criterion} (${r.weightPoints}% — automated check: ${r.automatedCheckable})`)
     .join("\n");
 
   try {
     const { text } = await generateText({
       // model: anthropic("claude-3-5-sonnet-20241022"), // swap back once you have Anthropic credits
-      model: google("models/gemini-3.6-flash"), // swap to "models/gemini-1.5-pro" for stronger reasoning once budget allows
+      model: google("models/gemini-1.5-flash"), // swap to "models/gemini-1.5-pro" for stronger reasoning once budget allows
       system: SYSTEM_PROMPT,
       prompt: `Quest: ${quest.title}\n\nRubric:\n${rubricText}\n\nSubmitted file (${submission.fileName}):\n${submittedText.slice(0, 8000)}`,
       temperature: 0.2,
     });
 
-    const parsed = JSON.parse(
-      text
-        .replace(/^```(json)?/i, "")
-        .replace(/```$/, "")
-        .trim(),
-    );
+    const parsed = JSON.parse(text.replace(/^```(json)?/i, "").replace(/```$/, "").trim());
 
     const result = {
       preliminaryScore: parsed.preliminaryScore,

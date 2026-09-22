@@ -24,7 +24,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
   return (
     <div className="max-w-7xl mx-auto px-6 pt-10 pb-24 page-enter">
       <div className="rounded-3xl p-8 md:p-10 mb-8 text-white relative overflow-hidden" style={{ background: "linear-gradient(135deg,var(--violet),var(--violet-2))" }}>
-        <div className="absolute -right-16 -bottom-24 w-72 h-72 rounded-full" style={{ background: "radial-gradient(circle, rgba(91,76,245,0.4), transparent 70%)" }} />
+        <div className="absolute -right-16 -bottom-24 w-72 h-72 rounded-full" style={{ background: "radial-gradient(circle, rgba(56,198,236,0.4), transparent 70%)" }} />
         <div className="flex flex-wrap items-center gap-8 relative">
           <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-display font-bold"
             style={{ background: `conic-gradient(#fff ${pct}%, rgba(255,255,255,0.18) 0)` }}>

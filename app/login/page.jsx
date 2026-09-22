@@ -79,7 +79,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="hero-bg min-h-[calc(100vh-64px)] flex items-center justify-center text-white px-6 py-16 page-enter">
+    <div className="hero-bg min-h-screen -mt-24 flex items-center justify-center text-white px-6 py-16 page-enter">
       <div className="bg-white text-[var(--ink)] rounded-3xl p-9 w-full max-w-sm shadow-2xl">
         <div
           className="w-10 h-10 rounded-lg flex items-center justify-center text-white mb-6"
