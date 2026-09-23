@@ -45,7 +45,7 @@ export default function Nav() {
 
   return (
     <nav className="fixed top-4 sm:top-6 inset-x-0 z-40 flex justify-center px-4">
-      <div className="w-full max-w-5xl bg-black rounded-full shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] px-3 sm:px-5 h-14 flex items-center justify-between gap-4">
+      <div className="w-full max-w-5xl bg-black border border-white/10 rounded-full shadow-[0_20px_50px_-15px_rgba(0,0,0,0.6)] px-3 sm:px-5 h-14 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <span
             className="w-8 h-8 rounded-lg flex items-center justify-center text-black font-black text-sm"

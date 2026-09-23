@@ -4,31 +4,31 @@ export default function HomePage() {
   return (
     <div className="page-enter">
       <div className="hero-bg text-white -mt-24">
-        <div className="max-w-7xl mx-auto px-6 pt-36 pb-28 relative">
-          <div className="max-w-2xl">
-            <span className="badge bg-white/10 border border-white/20 text-white/90 mb-6">
-              Built for AUPP · open to any student or faculty account
-            </span>
-            <h1 className="font-display font-bold text-4xl md:text-6xl leading-[1.08] mb-6">
-              Turn theoretical classwork into CV-ready credentials
-            </h1>
-            <p className="text-white/70 text-lg mb-9 max-w-xl">
-              Professors post real project work as quests. Students complete them for bounty
-              points. The school verifies the skill and backs it with a certificate — no open
-              marketplace, no spam, just your own coursework made to count.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/board" className="btn btn-light">Enter the board</Link>
-              <Link href="/ai-sidekick" className="btn btn-ghost">See how it works</Link>
-            </div>
+        <div className="max-w-4xl mx-auto px-6 pt-40 pb-24 relative flex flex-col items-center text-center">
+          <span className="badge bg-white/10 border border-white/20 text-white/90 mb-6">
+            Built for AUPP · open to any student or faculty account
+          </span>
+          <h1 className="font-display font-bold text-4xl md:text-6xl leading-[1.08] mb-6 max-w-3xl">
+            Turn theoretical classwork into CV-ready credentials
+          </h1>
+          <p className="text-white/70 text-lg mb-9 max-w-xl">
+            Professors post real project work as quests. Students complete them for bounty
+            points. The school verifies the skill and backs it with a certificate — no open
+            marketplace, no spam, just your own coursework made to count.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/board" className="btn btn-light">Enter the board</Link>
+            <Link href="/ai-sidekick" className="btn btn-ghost">See how it works</Link>
           </div>
-          <div className="mt-20 flex flex-wrap items-center gap-x-10 gap-y-3 text-white/50 text-sm">
-            <span className="text-white/35">Quests currently posted across</span>
-            <span>CS301 · Systems</span>
-            <span>ECON210 · Applied Econ</span>
-            <span>DES150 · Interaction Design</span>
-            <span>BUS240 · Strategy Lab</span>
-            <span>ENV110 · Field Methods</span>
+          <div className="mt-16 pt-8 border-t border-white/10 w-full flex flex-col items-center gap-3">
+            <span className="text-white/35 text-xs uppercase tracking-wide">Quests currently posted across</span>
+            <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-white/50 text-sm">
+              <span>CS301 · Systems</span>
+              <span>ECON210 · Applied Econ</span>
+              <span>DES150 · Interaction Design</span>
+              <span>BUS240 · Strategy Lab</span>
+              <span>ENV110 · Field Methods</span>
+            </div>
           </div>
         </div>
       </div>

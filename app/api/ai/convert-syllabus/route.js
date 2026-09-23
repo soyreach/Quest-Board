@@ -38,13 +38,13 @@ export async function POST(req) {
   if (!syllabusText || syllabusText.trim().length < 20) {
     return NextResponse.json(
       { error: "syllabusText is required and should be a real excerpt." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   try {
     const { text } = await generateText({
-      model: google("models/gemini-1.5-flash"),
+      model: google("models/gemini-3.6-flash"),
       system: SYSTEM_PROMPT,
       prompt: syllabusText,
       temperature: 0.4,
@@ -59,12 +59,18 @@ export async function POST(req) {
   } catch (err) {
     console.error("convert-syllabus failed:", err);
     return NextResponse.json(
-      { error: "Could not parse a quest from that syllabus text. Try adding more detail." },
-      { status: 502 }
+      {
+        error:
+          "Could not parse a quest from that syllabus text. Try adding more detail.",
+      },
+      { status: 502 },
     );
   }
 }
 
 function stripCodeFences(text) {
-  return text.replace(/^```(json)?/i, "").replace(/```$/, "").trim();
+  return text
+    .replace(/^```(json)?/i, "")
+    .replace(/```$/, "")
+    .trim();
 }

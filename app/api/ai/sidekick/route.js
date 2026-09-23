@@ -37,7 +37,7 @@ ${studentDraft ? `Student's current draft/code for context (do not solve it, jus
 
   const result = await streamText({
     // model: anthropic("claude-3-5-sonnet-20241022"), // swap back once you have Anthropic credits
-    model: google("models/gemini-1.5-flash"), // swap to "models/gemini-1.5-pro" for stronger reasoning once budget allows
+    model: google("models/gemini-3.6-flash"), // swap to "models/gemini-1.5-pro" for stronger reasoning once budget allows
     system: systemPrompt,
     messages,
     temperature: 0.6,

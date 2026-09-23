@@ -71,12 +71,13 @@ h1,h2,h3,h4,.font-display{
 .nav-link:hover::after,.nav-link.active::after{transform:scaleX(1);}
 .nav-link.active{color:var(--indigo);}
 
-/* hero */
+/* hero — deliberately a distinct deep-navy hue (not pure black) so it reads
+   as separate from the solid-black floating nav pill above it */
 .hero-bg{
   background:
-    radial-gradient(90% 140% at 15% 0%, rgba(56,198,236,0.30), transparent 60%),
-    radial-gradient(70% 120% at 100% 10%, rgba(56,198,236,0.14), transparent 55%),
-    linear-gradient(150deg, var(--ink-deep) 0%, var(--violet) 55%, var(--violet-2) 100%);
+    radial-gradient(90% 140% at 50% 0%, rgba(56,198,236,0.32), transparent 60%),
+    radial-gradient(70% 120% at 100% 10%, rgba(56,198,236,0.16), transparent 55%),
+    linear-gradient(160deg, #0B1330 0%, #132555 55%, #1B2F6B 100%);
   position:relative; overflow:hidden;
 }
 .hero-bg::before{

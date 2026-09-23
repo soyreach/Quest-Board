@@ -120,7 +120,8 @@ function ChatPanel({ threadId, initialMessages }) {
     initialMessages,
     body: { questId: null },
     onFinish: async (assistantMessage) => {
-      const fullHistory = [...messagesRef.current, assistantMessage];
+      const withoutDuplicate = messagesRef.current.filter((m) => m.id !== assistantMessage.id);
+      const fullHistory = [...withoutDuplicate, assistantMessage];
       await fetch(`/api/sidekick/threads/${threadId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -132,6 +133,11 @@ function ChatPanel({ threadId, initialMessages }) {
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  const messagesEndRef = useRef(null);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isLoading]);
 
   function chip(label) {
     append({ role: "user", content: label });
@@ -170,6 +176,7 @@ function ChatPanel({ threadId, initialMessages }) {
             </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="p-4 border-t border-black/5">
