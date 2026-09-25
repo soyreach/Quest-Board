@@ -36,7 +36,11 @@ export async function PATCH(req, { params }) {
 
   let feedbackFileInfo = null;
   if (feedbackFile && typeof feedbackFile.arrayBuffer === "function") {
-    feedbackFileInfo = await saveUploadedFile(feedbackFile);
+    try {
+      feedbackFileInfo = await saveUploadedFile(feedbackFile);
+    } catch (err) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
   }
 
   submission.professorFeedback = professorFeedback;

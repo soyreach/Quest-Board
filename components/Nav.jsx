@@ -21,10 +21,42 @@ export default function Nav() {
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [savedAccounts, setSavedAccounts] = useState([]);
   const [switching, setSwitching] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     if (switcherOpen) setSavedAccounts(getSavedAccounts());
   }, [switcherOpen]);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+
+    function update() {
+      const y = window.scrollY;
+      const delta = y - lastY;
+
+      if (y < 80) {
+        setHidden(false);
+      } else if (delta > 4) {
+        setHidden(true);
+      } else if (delta < -4) {
+        setHidden(false);
+      }
+
+      lastY = y;
+      ticking = false;
+    }
+
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(update);
+        ticking = true;
+      }
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const links = [
     ...BASE_LINKS,
@@ -44,8 +76,12 @@ export default function Nav() {
   }
 
   return (
-    <nav className="fixed top-4 sm:top-6 inset-x-0 z-40 flex justify-center px-4">
-      <div className="w-full max-w-5xl bg-black border border-white/10 rounded-full shadow-[0_20px_50px_-15px_rgba(0,0,0,0.6)] px-3 sm:px-5 h-14 flex items-center justify-between gap-4">
+    <nav
+      className={`fixed top-4 sm:top-6 inset-x-0 z-40 flex justify-center px-4 transition-all duration-500 ease-out ${
+        hidden ? "opacity-0 -translate-y-6 pointer-events-none" : "opacity-100 translate-y-0"
+      }`}
+    >
+      <div className="w-full max-w-5xl bg-[var(--navy)] border border-white/10 rounded-full shadow-[0_20px_50px_-15px_rgba(0,0,0,0.6)] px-3 sm:px-5 h-14 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <span
             className="w-8 h-8 rounded-lg flex items-center justify-center text-black font-black text-sm"

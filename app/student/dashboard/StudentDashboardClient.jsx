@@ -67,7 +67,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                 </div>
                 <div className="text-xs text-[var(--ink)]/50 mb-2">{s.quest?.course}</div>
                 {s.fileUrl && (
-                  <a href={s.fileUrl} target="_blank" rel="noreferrer" className="text-xs underline text-[var(--indigo)]">
+                  <a href={`/api/submissions/${s._id}/download`} className="text-xs underline text-[var(--indigo)]">
                     📄 {s.fileName}
                   </a>
                 )}
@@ -75,7 +75,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                   <p className="text-sm text-[var(--ink)]/60 italic mt-2">&quot;{s.professorFeedback}&quot;</p>
                 )}
                 {s.professorFeedbackFileUrl && (
-                  <a href={s.professorFeedbackFileUrl} target="_blank" rel="noreferrer" className="text-xs underline text-[var(--indigo)] block mt-1">
+                  <a href={`/api/submissions/${s._id}/download?which=feedback`} className="text-xs underline text-[var(--indigo)] block mt-1">
                     📎 {s.professorFeedbackFileName}
                   </a>
                 )}
@@ -100,7 +100,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                   <p className="text-sm text-[var(--ink)]/60 italic mb-1">&quot;{s.professorFeedback}&quot;</p>
                 )}
                 {s.professorFeedbackFileUrl && (
-                  <a href={s.professorFeedbackFileUrl} target="_blank" rel="noreferrer" className="text-xs underline text-[var(--indigo)] block mb-3">
+                  <a href={`/api/submissions/${s._id}/download?which=feedback`} className="text-xs underline text-[var(--indigo)] block mb-3">
                     📎 {s.professorFeedbackFileName}
                   </a>
                 )}

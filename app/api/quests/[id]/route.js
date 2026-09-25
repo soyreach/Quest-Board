@@ -26,7 +26,12 @@ export async function PATCH(req, { params }) {
 
   const attachment = formData.get("attachment");
   if (attachment && typeof attachment.arrayBuffer === "function") {
-    const saved = await saveUploadedFile(attachment);
+    let saved;
+    try {
+      saved = await saveUploadedFile(attachment);
+    } catch (err) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
     quest.attachmentUrl = saved.url;
     quest.attachmentName = saved.name;
   }

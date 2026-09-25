@@ -41,7 +41,12 @@ export async function POST(req) {
     );
   }
 
-  const saved = await saveUploadedFile(file);
+  let saved;
+  try {
+    saved = await saveUploadedFile(file);
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 400 });
+  }
 
   await connectToDatabase();
   const submission = await Submission.create({

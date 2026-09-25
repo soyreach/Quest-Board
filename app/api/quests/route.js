@@ -41,7 +41,11 @@ export async function POST(req) {
 
   let attachmentInfo = null;
   if (attachment && typeof attachment.arrayBuffer === "function") {
-    attachmentInfo = await saveUploadedFile(attachment);
+    try {
+      attachmentInfo = await saveUploadedFile(attachment);
+    } catch (err) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
   }
 
   await connectToDatabase();

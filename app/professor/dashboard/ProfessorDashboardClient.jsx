@@ -196,8 +196,8 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
               <div>
                 <div className="font-medium">{s.student?.name} — {s.quest?.title}</div>
                 {s.fileUrl ? (
-                  <a href={s.fileUrl} target="_blank" rel="noreferrer" className="text-xs underline text-[var(--indigo)]">
-                    📄 {s.fileName || "View submitted file"}
+                  <a href={`/api/submissions/${s._id}/download`} className="text-xs underline text-[var(--indigo)]">
+                    📄 {s.fileName || "Download submitted file"}
                   </a>
                 ) : (
                   <div className="text-xs text-[var(--ink)]/50">{s.repoLink}</div>

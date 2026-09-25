@@ -13,6 +13,7 @@
   --violet-2:#1c1c1c;    /* hero gradient stop — was a purple, now charcoal */
   --indigo:#38C6EC;      /* primary accent — Quantum²'s exact cyan */
   --indigo-soft:#EAF9FD; /* light cyan tint for chips/backgrounds */
+  --navy:#0B1330;        /* floating nav background — same deep navy as the hero, not flat black */
   --lavender:#FAFAFA;    /* app background — neutral instead of purple-tinted */
   --muted:#b8b8b8;
 
