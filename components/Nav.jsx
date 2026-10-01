@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut, signIn } from "next-auth/react";
 import { getSavedAccounts, removeSavedAccount } from "@/lib/savedAccounts";
+import NotificationBell from "@/components/NotificationBell";
 
 const BASE_LINKS = [
   { href: "/", label: "Home" },
@@ -113,6 +114,8 @@ export default function Nav() {
                 {session.user?.name?.split(" ")[0]}
                 {session.user?.role ? ` · ${session.user.role}` : ""}
               </span>
+
+              {role && <NotificationBell closeSignal={switcherOpen} onOpen={() => setSwitcherOpen(false)} />}
 
               <button className="btn btn-light btn-sm" onClick={() => setSwitcherOpen((o) => !o)}>
                 Switch

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
+import FilterDropdown from "@/components/FilterDropdown";
 
 function formatDeadline(deadline) {
   if (!deadline) return null;
@@ -12,6 +13,12 @@ function formatDeadline(deadline) {
 export default function BoardClient({ initialQuests }) {
   const { data: session } = useSession();
   const [quests, setQuests] = useState(initialQuests);
+  // A stable snapshot of everything the board showed on first load, used ONLY
+  // to build the dropdown option lists. `quests` itself gets replaced by
+  // whatever the current filters return, so deriving options from `quests`
+  // would make each selection shrink the choices available next time
+  // (pick one course, and every other course disappears from the list).
+  const [allQuestsForFilters] = useState(initialQuests);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ course: "", skillTag: "", difficulty: "", minPoints: 0 });
   const [openQuest, setOpenQuest] = useState(null);
@@ -48,8 +55,8 @@ export default function BoardClient({ initialQuests }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
-  const courses = useMemo(() => [...new Set(quests.map((q) => q.course))], [quests]);
-  const skills = useMemo(() => [...new Set(quests.map((q) => q.skillTag))], [quests]);
+  const courses = useMemo(() => [...new Set(allQuestsForFilters.map((q) => q.course))], [allQuestsForFilters]);
+  const skills = useMemo(() => [...new Set(allQuestsForFilters.map((q) => q.skillTag))], [allQuestsForFilters]);
 
   async function handleSubmitQuest(questId) {
     if (!file) {
@@ -96,41 +103,45 @@ export default function BoardClient({ initialQuests }) {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 mb-6 bg-white rounded-2xl p-4 shadow-[0_10px_30px_-18px_rgba(20,18,43,0.4)]">
-        <select
-          className="text-sm rounded-full border border-black/10 px-4 py-2 bg-white"
+      <div className="flex flex-wrap items-center gap-3 mb-6 bg-white rounded-2xl p-4 shadow-[0_10px_30px_-18px_rgba(20,18,43,0.4)]">
+        <FilterDropdown
+          width="220px"
+          label="All courses"
           value={filters.course}
-          onChange={(e) => setFilters((f) => ({ ...f, course: e.target.value }))}
-        >
-          <option value="">All courses</option>
-          {courses.map((c) => <option key={c}>{c}</option>)}
-        </select>
-        <select
-          className="text-sm rounded-full border border-black/10 px-4 py-2 bg-white"
+          onChange={(v) => setFilters((f) => ({ ...f, course: v }))}
+          options={[{ value: "", label: "All courses" }, ...courses.map((c) => ({ value: c, label: c }))]}
+        />
+        <FilterDropdown
+          width="200px"
+          label="All skill tags"
           value={filters.skillTag}
-          onChange={(e) => setFilters((f) => ({ ...f, skillTag: e.target.value }))}
-        >
-          <option value="">All skill tags</option>
-          {skills.map((s) => <option key={s}>{s}</option>)}
-        </select>
-        <select
-          className="text-sm rounded-full border border-black/10 px-4 py-2 bg-white"
+          onChange={(v) => setFilters((f) => ({ ...f, skillTag: v }))}
+          options={[{ value: "", label: "All skill tags" }, ...skills.map((s) => ({ value: s, label: s }))]}
+        />
+        <FilterDropdown
+          width="170px"
+          label="Any difficulty"
           value={filters.difficulty}
-          onChange={(e) => setFilters((f) => ({ ...f, difficulty: e.target.value }))}
-        >
-          <option value="">Any difficulty</option>
-          <option>Apprentice</option><option>Journeyman</option><option>Master</option>
-        </select>
-        <select
-          className="text-sm rounded-full border border-black/10 px-4 py-2 bg-white"
+          onChange={(v) => setFilters((f) => ({ ...f, difficulty: v }))}
+          options={[
+            { value: "", label: "Any difficulty" },
+            { value: "Apprentice", label: "Apprentice" },
+            { value: "Journeyman", label: "Journeyman" },
+            { value: "Master", label: "Master" },
+          ]}
+        />
+        <FilterDropdown
+          width="150px"
+          label="Any bounty"
           value={filters.minPoints}
-          onChange={(e) => setFilters((f) => ({ ...f, minPoints: parseInt(e.target.value, 10) }))}
-        >
-          <option value="0">Any bounty</option>
-          <option value="100">100+ pts</option>
-          <option value="200">200+ pts</option>
-          <option value="300">300+ pts</option>
-        </select>
+          onChange={(v) => setFilters((f) => ({ ...f, minPoints: parseInt(v, 10) }))}
+          options={[
+            { value: 0, label: "Any bounty" },
+            { value: 100, label: "100+ pts" },
+            { value: 200, label: "200+ pts" },
+            { value: 300, label: "300+ pts" },
+          ]}
+        />
         <span className="ml-auto self-center text-xs text-[var(--ink)]/45">
           {loading ? "Loading…" : `${quests.length} quest${quests.length === 1 ? "" : "s"} pinned`}
         </span>

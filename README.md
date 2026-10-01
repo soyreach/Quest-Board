@@ -241,6 +241,47 @@ not considered). `.zip`, images, and other binaries still aren't (see
 `lib/textExtract.js` for the exact list) — pre-check honestly reports "can't
 auto-check this file type" for those rather than fabricating a score.
 
+## Notifications
+
+A bell in the nav (signed-in users with a role) shows an unread count and a
+dropdown list. It polls `GET /api/notifications` every 30 seconds and when
+the tab regains focus.
+
+| Who | Notification |
+|---|---|
+| Students | a professor posts a new quest |
+| Students | a professor edits a quest they can still work on (bounty, deadline or attached file changed) |
+| Students | a professor requests a revision (includes the comment) |
+| Students | a professor approves a submission (includes points earned) |
+| Students | they reach the Bronze, Silver or Gold tier (sent once per tier) |
+| Students | a quest they haven't turned in is due within 48 hours (sent once per quest) |
+| Professors | a student turns in work, or resubmits after a revision request |
+
+Notifications live in the `Notification` model. They are created by
+`lib/notify.js`, which never throws, so a notification failure can't break
+posting or reviewing. Users can mark one or all as read, dismiss one, or clear
+the list. Deadline reminders have no scheduler; they are created when a
+student's list is fetched (at most every 5 minutes per student).
+
+**Tiers.** The student hub's certificate bar has three tiers: Bronze at 1000
+points, Silver at 2500 (+100 bonus points) and Gold at 3500 (+250 bonus
+points). All of it lives in `lib/tiers.js`; change the numbers there. Rewards are
+granted by `lib/tierRewards.js` right after a professor approves work, each tier
+once per student, using a conditional database update so a bonus can't be paid
+twice. A student who is already past a tier when this ships gets that tier's
+reward on their next approval. The bar shows the running total including
+bonuses, so it can differ from the sum of approved quests.
+
+**Archive.** The X on an in-progress quest moves it to the student's Archive tab
+(`archivedByStudent` on the submission). It only hides it from that student's
+list; the professor's review queue is unaffected. Restore brings it back, and a
+new revision request or approval automatically returns a quest to the student's
+lists. Approved quests can't be archived.
+
+**Bounty points** are set by the professor when pinning a quest (the AI value
+is only a suggestion) and can be changed later from the Edit button. The
+allowed range lives in `lib/constants.js` and is validated on the server.
+
 ## Known gaps / simplifications
 
 - **Files live on local disk, not cloud storage** — see "File uploads" above.
@@ -255,8 +296,8 @@ auto-check this file type" for those rather than fabricating a score.
   isn't passing them yet.
 - **Socratic/no-direct-solutions guardrail is a prompt instruction**, not an
   enforced filter.
-- **Editing a posted quest** currently only covers deadline and attachment —
-  not title/description/rubric/points. Extend `quests/[id]/route.js` and the
+- **Editing a posted quest** currently covers bounty points, deadline and
+  attachment — not title/description/rubric. Extend `quests/[id]/route.js` and the
   edit modal in the professor dashboard if you need more fields editable.
 - **Bounty points formula:** `estimatedHours * 25 * tierMultiplier`
   (1 / 1.3 / 1.6 for Apprentice / Journeyman / Master).

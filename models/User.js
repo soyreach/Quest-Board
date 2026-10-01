@@ -25,6 +25,8 @@ const UserSchema = new mongoose.Schema(
     bountyPoints: { type: Number, default: 0 },
     careerGoals: { type: [String], default: [] }, // e.g. ["Backend Engineer", "Data Analyst"]
     skills: { type: [String], default: [] },
+    // Tiers (Bronze/Silver/Gold) whose reward has already been given. See lib/tiers.js.
+    tiersReached: { type: [String], default: [] },
     tierBadge: {
       type: String,
       enum: ["Apprentice", "Journeyman", "Master"],

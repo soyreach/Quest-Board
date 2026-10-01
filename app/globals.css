@@ -171,3 +171,8 @@ h1,h2,h3,h4,.font-display{
 @keyframes blink{0%,80%,100%{opacity:.25;} 40%{opacity:1;}}
 
 input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--indigo); outline-offset:2px;}
+
+/* Notification bell: a short shake when something new arrives while the page is open */
+@keyframes bellRing{0%,100%{transform:rotate(0);}15%{transform:rotate(14deg);}30%{transform:rotate(-12deg);}45%{transform:rotate(8deg);}60%{transform:rotate(-6deg);}75%{transform:rotate(3deg);}}
+.bell-ring svg{transform-origin:50% 10%; animation:bellRing .9s ease-in-out;}
+@media (prefers-reduced-motion: reduce){ .bell-ring svg{animation:none;} }

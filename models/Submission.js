@@ -40,6 +40,10 @@ const SubmissionSchema = new mongoose.Schema(
 
     aiPreCheck: { type: AIPreCheckSchema, default: null },
 
+    // The student moved this to their Archive tab. Only hides it from their
+    // In progress list; the professor's queue never looks at this.
+    archivedByStudent: { type: Boolean, default: false },
+
     awardedPoints: { type: Number, default: 0 },
     professorFeedback: { type: String },
     professorFeedbackFileUrl: { type: String, default: null }, // e.g. an annotated file sent back

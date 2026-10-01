@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import Submission from "@/models/Submission";
+import Quest from "@/models/Quest";
+import User from "@/models/User";
+import { notifyUser } from "@/lib/notify";
 import { saveUploadedFile } from "@/lib/upload";
 import { getMySubmissions, getReviewQueue } from "@/lib/queries";
 
@@ -41,6 +45,14 @@ export async function POST(req) {
     );
   }
 
+  // Look the quest up first: we need its professor to notify, and there's
+  // no point saving a file for a quest that doesn't exist.
+  await connectToDatabase();
+  const quest = mongoose.isValidObjectId(questId) ? await Quest.findById(questId) : null;
+  if (!quest) {
+    return NextResponse.json({ error: "That quest no longer exists." }, { status: 404 });
+  }
+
   let saved;
   try {
     saved = await saveUploadedFile(file);
@@ -48,13 +60,26 @@ export async function POST(req) {
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  await connectToDatabase();
+  // A student turning work in again after a revision request reads differently to the professor.
+  const isResubmission = Boolean(
+    await Submission.exists({ quest: questId, student: session.user.id, status: "Needs_Revision" })
+  );
+
   const submission = await Submission.create({
     quest: questId,
     student: session.user.id,
     fileUrl: saved.url,
     fileName: saved.name,
     status: "Submitted",
+  });
+
+  const student = await User.findById(session.user.id).select("name").lean();
+  const who = student?.name || session.user.name || "A student";
+  await notifyUser(quest.author, {
+    type: "submission_received",
+    title: isResubmission ? "Revised work turned in" : "New submission to review",
+    message: `${who} ${isResubmission ? "resubmitted" : "turned in"} "${quest.title}".`,
+    link: "/professor/dashboard",
   });
 
   return NextResponse.json(submission, { status: 201 });

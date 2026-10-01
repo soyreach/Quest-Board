@@ -4,6 +4,9 @@ import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import Quest from "@/models/Quest";
 import { saveUploadedFile } from "@/lib/upload";
+import { parseBountyPoints } from "@/lib/bounty";
+import { describeQuestChanges } from "@/lib/questChanges";
+import { notifyQuestUpdated } from "@/lib/notify";
 
 export async function PATCH(req, { params }) {
   const session = await getServerSession(authOptions);
@@ -17,7 +20,23 @@ export async function PATCH(req, { params }) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // Remember what students currently see, so we can tell them what changed.
+  const before = {
+    bountyPoints: quest.bountyPoints,
+    deadline: quest.deadline ? new Date(quest.deadline).getTime() : null,
+    attachmentUrl: quest.attachmentUrl || null,
+  };
+
   const formData = await req.formData();
+
+  // Validate first so a bad value never leaves a half-saved edit or an orphaned upload.
+  if (formData.has("bountyPoints")) {
+    const bounty = parseBountyPoints(formData.get("bountyPoints"));
+    if (!bounty.ok) {
+      return NextResponse.json({ error: bounty.error }, { status: 400 });
+    }
+    quest.bountyPoints = bounty.value;
+  }
 
   if (formData.has("deadline")) {
     const deadlineRaw = formData.get("deadline");
@@ -41,5 +60,13 @@ export async function PATCH(req, { params }) {
   }
 
   await quest.save();
+
+  const after = {
+    bountyPoints: quest.bountyPoints,
+    deadline: quest.deadline ? new Date(quest.deadline).getTime() : null,
+    attachmentUrl: quest.attachmentUrl || null,
+  };
+  await notifyQuestUpdated(quest, describeQuestChanges(before, after));
+
   return NextResponse.json(quest);
 }

@@ -1,21 +1,48 @@
 "use client";
 
 import { useState } from "react";
+import { MIN_BOUNTY_POINTS, MAX_BOUNTY_POINTS } from "@/lib/constants";
 
 function formatDeadline(deadline) {
   if (!deadline) return null;
   return new Date(deadline).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+// "Expired" = has a deadline that's already passed. Everything else
+// (no deadline, or a deadline still in the future) counts as "posted".
+function isExpired(quest) {
+  return Boolean(quest.deadline) && new Date(quest.deadline) < new Date();
+}
+
+// Returns an error message for an invalid bounty, or "" when it is fine.
+// The server checks again; this just saves the professor a round trip.
+function validateBounty(raw) {
+  const text = String(raw ?? "").trim();
+  const n = Number(text);
+  if (text === "" || !Number.isInteger(n)) return "Enter the bounty as a whole number of points.";
+  if (n < MIN_BOUNTY_POINTS || n > MAX_BOUNTY_POINTS) {
+    return `Bounty must be between ${MIN_BOUNTY_POINTS} and ${MAX_BOUNTY_POINTS} points.`;
+  }
+  return "";
+}
+
+const QUEST_FILTERS = [
+  { key: "all", label: "All" },
+  { key: "posted", label: "Posted" },
+  { key: "expired", label: "Expired" },
+];
+
 export default function ProfessorDashboardClient({ initialQuests, initialQueue }) {
   const [quests, setQuests] = useState(initialQuests);
   const [queue, setQueue] = useState(initialQueue);
+  const [questFilter, setQuestFilter] = useState("all"); // "all" | "posted" | "expired"
 
   // Create-quest modal state
   const [creatorOpen, setCreatorOpen] = useState(false);
   const [syllabusText, setSyllabusText] = useState("");
   const [converting, setConverting] = useState(false);
   const [draft, setDraft] = useState(null);
+  const [suggestedPoints, setSuggestedPoints] = useState(null); // what the AI proposed, for reference
   const [convertError, setConvertError] = useState("");
   const [pinning, setPinning] = useState(false);
   const [newDeadline, setNewDeadline] = useState("");
@@ -25,11 +52,33 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
   const [editingQuest, setEditingQuest] = useState(null);
   const [editDeadline, setEditDeadline] = useState("");
   const [editAttachment, setEditAttachment] = useState(null);
+  const [editPoints, setEditPoints] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
 
   // Per-submission comment/feedback-file state, keyed by submission id
   const [reviewNotes, setReviewNotes] = useState({});
   const [reviewFiles, setReviewFiles] = useState({});
+
+  // Surfaced failures + in-flight tracking, so a failed request never looks
+  // like a successful one (and a double-click can't fire the same action twice).
+  const [pinError, setPinError] = useState("");
+  const [editError, setEditError] = useState("");
+  const [reviewErrors, setReviewErrors] = useState({}); // keyed by submission id
+  const [busyIds, setBusyIds] = useState([]); // submission ids with a request in flight
+
+  function setReviewError(id, message) {
+    setReviewErrors((errs) => {
+      const next = { ...errs };
+      if (message) next[id] = message;
+      else delete next[id];
+      return next;
+    });
+  }
+
+  async function readError(res, fallback) {
+    const { error } = await res.json().catch(() => ({}));
+    return error || fallback;
+  }
 
   // Used after mutations (pin/edit/review/pre-check) to pull the fresh
   // state back in — the INITIAL load no longer needs this, since the server
@@ -57,12 +106,20 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
       setConvertError(error || "Conversion failed — try adding more detail to the syllabus text.");
       return;
     }
-    setDraft(await res.json());
+    const data = await res.json();
+    setDraft(data);
+    setSuggestedPoints(data.bountyPoints ?? null);
   }
 
   async function pinQuest() {
     if (!draft) return;
+    const bountyError = validateBounty(draft.bountyPoints);
+    if (bountyError) {
+      setPinError(bountyError);
+      return;
+    }
     setPinning(true);
+    setPinError("");
 
     const form = new FormData();
     Object.entries(draft).forEach(([key, value]) => {
@@ -72,15 +129,23 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
     if (newDeadline) form.append("deadline", newDeadline);
     if (newAttachment) form.append("attachment", newAttachment);
 
-    const res = await fetch("/api/quests", { method: "POST", body: form });
-    setPinning(false);
-    if (res.ok) {
+    try {
+      const res = await fetch("/api/quests", { method: "POST", body: form });
+      if (!res.ok) {
+        setPinError(await readError(res, "Could not pin this quest — please try again."));
+        return;
+      }
       setCreatorOpen(false);
       setDraft(null);
+      setSuggestedPoints(null);
       setSyllabusText("");
       setNewDeadline("");
       setNewAttachment(null);
       loadAll();
+    } catch {
+      setPinError("Network error — check your connection and try again.");
+    } finally {
+      setPinning(false);
     }
   }
 
@@ -88,41 +153,86 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
     setEditingQuest(quest);
     setEditDeadline(quest.deadline ? new Date(quest.deadline).toISOString().slice(0, 10) : "");
     setEditAttachment(null);
+    setEditPoints(String(quest.bountyPoints ?? ""));
+    setEditError("");
   }
 
   async function saveEdit() {
     if (!editingQuest) return;
+    const bountyError = validateBounty(editPoints);
+    if (bountyError) {
+      setEditError(bountyError);
+      return;
+    }
     setSavingEdit(true);
+    setEditError("");
 
     const form = new FormData();
     form.append("deadline", editDeadline); // empty string clears the deadline
     if (editAttachment) form.append("attachment", editAttachment);
+    if (Number(editPoints) !== editingQuest.bountyPoints) form.append("bountyPoints", editPoints);
 
-    const res = await fetch(`/api/quests/${editingQuest._id}`, { method: "PATCH", body: form });
-    setSavingEdit(false);
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/quests/${editingQuest._id}`, { method: "PATCH", body: form });
+      if (!res.ok) {
+        setEditError(await readError(res, "Could not save changes — please try again."));
+        return;
+      }
       setEditingQuest(null);
       loadAll();
+    } catch {
+      setEditError("Network error — check your connection and try again.");
+    } finally {
+      setSavingEdit(false);
     }
   }
 
   async function reviewAction(id, action) {
+    if (busyIds.includes(id)) return; // ignore double-clicks while a request is in flight
+    setBusyIds((ids) => [...ids, id]);
+    setReviewError(id, "");
+
     const form = new FormData();
     form.append("action", action);
     form.append("professorFeedback", reviewNotes[id] || "");
     if (reviewFiles[id]) form.append("feedbackFile", reviewFiles[id]);
 
-    await fetch(`/api/submissions/${id}`, { method: "PATCH", body: form });
-    setQueue((q) => q.filter((s) => s._id !== id));
+    try {
+      const res = await fetch(`/api/submissions/${id}`, { method: "PATCH", body: form });
+      if (!res.ok) {
+        // Leave the submission in the queue — nothing was saved.
+        setReviewError(id, await readError(res, "Could not save this review — please try again."));
+        return;
+      }
+      setQueue((q) => q.filter((s) => s._id !== id));
+    } catch {
+      setReviewError(id, "Network error — check your connection and try again.");
+    } finally {
+      setBusyIds((ids) => ids.filter((x) => x !== id));
+    }
   }
 
   async function preCheck(id) {
-    await fetch("/api/ai/pre-grade", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ submissionId: id }),
-    });
-    loadAll();
+    if (busyIds.includes(id)) return;
+    setBusyIds((ids) => [...ids, id]);
+    setReviewError(id, "");
+
+    try {
+      const res = await fetch("/api/ai/pre-grade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionId: id }),
+      });
+      if (!res.ok) {
+        setReviewError(id, await readError(res, "The AI pre-check failed — please try again."));
+        return;
+      }
+      await loadAll();
+    } catch {
+      setReviewError(id, "Network error — check your connection and try again.");
+    } finally {
+      setBusyIds((ids) => ids.filter((x) => x !== id));
+    }
   }
 
   return (
@@ -132,7 +242,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
           <h1 className="font-display font-bold text-3xl mb-1">Faculty hub</h1>
           <p className="text-[var(--ink)]/55 text-sm">Post quests, manage what&apos;s live, and review incoming submissions.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setCreatorOpen(true)}>+ Add new quest</button>
+        <button className="btn btn-primary" onClick={() => { setPinError(""); setCreatorOpen(true); }}>+ Add new quest</button>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5 mb-10">
@@ -152,39 +262,72 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
         </div>
       </div>
 
-      <h2 className="font-display font-semibold text-xl mb-4">Posted quests</h2>
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <h2 className="font-display font-semibold text-xl">Posted quests</h2>
+        <div className="flex gap-2">
+          {QUEST_FILTERS.map((f) => {
+            const count =
+              f.key === "all" ? quests.length :
+              f.key === "posted" ? quests.filter((q) => !isExpired(q)).length :
+              quests.filter(isExpired).length;
+            return (
+              <button
+                key={f.key}
+                onClick={() => setQuestFilter(f.key)}
+                className={`btn btn-sm ${questFilter === f.key ? "btn-outline" : ""}`}
+                style={questFilter !== f.key ? { background: "var(--indigo-soft)", color: "var(--violet-2)" } : undefined}
+              >
+                {f.label} ({count})
+              </button>
+            );
+          })}
+        </div>
+      </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
-        {quests.length === 0 && <p className="text-sm text-[var(--ink)]/50">No quests posted yet — add your first one above.</p>}
-        {quests.map((q) => {
-          const expired = q.deadline && new Date(q.deadline) < new Date();
-          return (
-            <div key={q._id} className="p-5 rounded-2xl bg-white border border-black/5">
-              <div className="flex justify-between mb-2">
-                <span className="badge bg-[var(--indigo-soft)] text-[var(--violet-2)]">{q.status}</span>
-                <span className="text-xs font-semibold" style={{ color: "var(--gold)" }}>+{q.bountyPoints} pts</span>
-              </div>
-              <div className="font-medium mb-1">{q.title}</div>
-              <div className="text-xs text-[var(--ink)]/50 mb-3">{q.course}</div>
-              <div className="flex items-center justify-between">
-                <div className="text-xs">
-                  {q.deadline ? (
-                    <span className={expired ? "text-red-600 font-medium" : "text-[var(--ink)]/50"}>
-                      {expired ? "Expired " : "Due "}{formatDeadline(q.deadline)}
-                    </span>
-                  ) : (
-                    <span className="text-[var(--ink)]/35">No deadline</span>
-                  )}
+        {(() => {
+          const filteredQuests =
+            questFilter === "posted" ? quests.filter((q) => !isExpired(q)) :
+            questFilter === "expired" ? quests.filter(isExpired) :
+            quests;
+
+          if (quests.length === 0) {
+            return <p className="text-sm text-[var(--ink)]/50">No quests posted yet — add your first one above.</p>;
+          }
+          if (filteredQuests.length === 0) {
+            return <p className="text-sm text-[var(--ink)]/50">No {questFilter} quests right now.</p>;
+          }
+
+          return filteredQuests.map((q) => {
+            const expired = isExpired(q);
+            return (
+              <div key={q._id} className="p-5 rounded-2xl bg-white border border-black/5">
+                <div className="flex justify-between mb-2">
+                  <span className="badge bg-[var(--indigo-soft)] text-[var(--violet-2)]">{q.status}</span>
+                  <span className="text-xs font-semibold" style={{ color: "var(--gold)" }}>+{q.bountyPoints} pts</span>
                 </div>
-                <button className="btn btn-sm btn-outline" onClick={() => openEdit(q)}>Edit</button>
+                <div className="font-medium mb-1">{q.title}</div>
+                <div className="text-xs text-[var(--ink)]/50 mb-3">{q.course}</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-xs">
+                    {q.deadline ? (
+                      <span className={expired ? "text-red-600 font-medium" : "text-[var(--ink)]/50"}>
+                        {expired ? "Expired " : "Due "}{formatDeadline(q.deadline)}
+                      </span>
+                    ) : (
+                      <span className="text-[var(--ink)]/35">No deadline</span>
+                    )}
+                  </div>
+                  <button className="btn btn-sm btn-outline" onClick={() => openEdit(q)}>Edit</button>
+                </div>
+                {q.attachmentUrl && (
+                  <a href={q.attachmentUrl} target="_blank" rel="noreferrer" className="text-xs underline mt-2 inline-block text-[var(--indigo)]">
+                    📎 {q.attachmentName}
+                  </a>
+                )}
               </div>
-              {q.attachmentUrl && (
-                <a href={q.attachmentUrl} target="_blank" rel="noreferrer" className="text-xs underline mt-2 inline-block text-[var(--indigo)]">
-                  📎 {q.attachmentName}
-                </a>
-              )}
-            </div>
-          );
-        })}
+            );
+          });
+        })()}
       </div>
 
       <h2 className="font-display font-semibold text-xl mb-4">Submission review queue</h2>
@@ -251,7 +394,9 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                 </div>
               )
             ) : (
-              <button className="btn btn-sm btn-outline mb-4" onClick={() => preCheck(s._id)}>✨ Run AI pre-check</button>
+              <button className="btn btn-sm btn-outline mb-4" disabled={busyIds.includes(s._id)} onClick={() => preCheck(s._id)}>
+                {busyIds.includes(s._id) ? "Checking…" : "✨ Run AI pre-check"}
+              </button>
             )}
 
             <textarea
@@ -271,9 +416,13 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
               {reviewFiles[s._id]?.name && <span>{reviewFiles[s._id].name}</span>}
             </label>
 
+            {reviewErrors[s._id] && <p className="text-xs text-red-600 mb-3">{reviewErrors[s._id]}</p>}
+
             <div className="flex gap-3">
-              <button className="btn btn-sm btn-primary" onClick={() => reviewAction(s._id, "approve")}>Approve &amp; award points</button>
-              <button className="btn btn-sm btn-outline" onClick={() => reviewAction(s._id, "revise")}>Request revision</button>
+              <button className="btn btn-sm btn-primary" disabled={busyIds.includes(s._id)} onClick={() => reviewAction(s._id, "approve")}>
+                {busyIds.includes(s._id) ? "Saving…" : "Approve & award points"}
+              </button>
+              <button className="btn btn-sm btn-outline" disabled={busyIds.includes(s._id)} onClick={() => reviewAction(s._id, "revise")}>Request revision</button>
             </div>
           </div>
         ))}
@@ -302,12 +451,42 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                 <input className="w-full rounded-xl border border-black/10 p-3 text-sm" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
                 <textarea rows={3} className="w-full rounded-xl border border-black/10 p-3 text-sm" value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
                 <div className="grid grid-cols-3 gap-3">
-                  <select className="rounded-xl border border-black/10 p-3 text-sm" value={draft.difficulty} onChange={(e) => setDraft({ ...draft, difficulty: e.target.value })}>
-                    <option>Apprentice</option><option>Journeyman</option><option>Master</option>
-                  </select>
-                  <input className="rounded-xl border border-black/10 p-3 text-sm" value={draft.estimatedHours} onChange={(e) => setDraft({ ...draft, estimatedHours: Number(e.target.value) })} />
-                  <input className="rounded-xl border border-black/10 p-3 text-sm" value={`${draft.bountyPoints} pts`} readOnly />
+                  <div>
+                    <label htmlFor="quest-difficulty" className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Difficulty</label>
+                    <select id="quest-difficulty" className="w-full rounded-xl border border-black/10 p-3 text-sm" value={draft.difficulty} onChange={(e) => setDraft({ ...draft, difficulty: e.target.value })}>
+                      <option>Apprentice</option><option>Journeyman</option><option>Master</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="quest-hours" className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Estimated hours</label>
+                    <input id="quest-hours" className="w-full rounded-xl border border-black/10 p-3 text-sm" value={draft.estimatedHours} onChange={(e) => setDraft({ ...draft, estimatedHours: Number(e.target.value) })} />
+                  </div>
+                  <div>
+                    <label htmlFor="quest-bounty" className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Bounty points</label>
+                    <input
+                      id="quest-bounty"
+                      type="number"
+                      inputMode="numeric"
+                      min={MIN_BOUNTY_POINTS}
+                      max={MAX_BOUNTY_POINTS}
+                      step="1"
+                      className="w-full rounded-xl border border-black/10 p-3 text-sm"
+                      value={draft.bountyPoints}
+                      onChange={(e) => setDraft({ ...draft, bountyPoints: e.target.value })}
+                    />
+                  </div>
                 </div>
+                <p className="text-xs text-[var(--ink)]/45 -mt-1">
+                  You decide the bounty ({MIN_BOUNTY_POINTS}–{MAX_BOUNTY_POINTS} points).
+                  {suggestedPoints != null && Number(draft.bountyPoints) !== suggestedPoints && (
+                    <>
+                      {" "}The AI suggested {suggestedPoints}.{" "}
+                      <button type="button" className="underline" onClick={() => setDraft({ ...draft, bountyPoints: suggestedPoints })}>
+                        Use that
+                      </button>
+                    </>
+                  )}
+                </p>
 
                 <div>
                   <label className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Deadline (optional)</label>
@@ -327,6 +506,8 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                   />
                 </div>
 
+                {pinError && <p className="text-xs text-red-600">{pinError}</p>}
+
                 <button className="btn btn-primary w-full" onClick={pinQuest} disabled={pinning}>
                   {pinning ? "Pinning…" : "📌 Pin to board"}
                 </button>
@@ -341,7 +522,23 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
         {editingQuest && (
           <div className="w-[92vw] max-w-md plain-modal p-8" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display font-bold text-xl mb-1">Edit &quot;{editingQuest.title}&quot;</h3>
-            <p className="text-sm text-[var(--ink)]/55 mb-5">Update the deadline or swap the attached file.</p>
+            <p className="text-sm text-[var(--ink)]/55 mb-5">Update the bounty or deadline, or swap the attached file.</p>
+
+            <label htmlFor="edit-bounty" className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Bounty points</label>
+            <input
+              id="edit-bounty"
+              type="number"
+              inputMode="numeric"
+              min={MIN_BOUNTY_POINTS}
+              max={MAX_BOUNTY_POINTS}
+              step="1"
+              value={editPoints}
+              onChange={(e) => setEditPoints(e.target.value)}
+              className="w-full rounded-xl border border-black/10 p-3 text-sm mb-1"
+            />
+            <p className="text-xs text-[var(--ink)]/40 mb-4">
+              Applies to approvals from now on. Students already approved keep the points they earned.
+            </p>
 
             <label className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Deadline</label>
             <input
@@ -358,6 +555,8 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
               onChange={(e) => setEditAttachment(e.target.files?.[0] || null)}
               className="w-full text-sm mb-6"
             />
+
+            {editError && <p className="text-xs text-red-600 mb-3">{editError}</p>}
 
             <button className="btn btn-primary w-full" onClick={saveEdit} disabled={savingEdit}>
               {savingEdit ? "Saving…" : "Save changes"}
