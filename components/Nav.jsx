@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut, signIn } from "next-auth/react";
 import { getSavedAccounts, removeSavedAccount } from "@/lib/savedAccounts";
 import NotificationBell from "@/components/NotificationBell";
+import TargetLogo from "@/components/TargetLogo";
 
 const BASE_LINKS = [
   { href: "/", label: "Home" },
@@ -63,6 +64,7 @@ export default function Nav() {
     ...BASE_LINKS,
     ...(role === "Student" ? [{ href: "/student/dashboard", label: "Student hub" }] : []),
     ...(role === "Professor" ? [{ href: "/professor/dashboard", label: "Faculty hub" }] : []),
+    ...(role === "Committee" ? [{ href: "/committee/dashboard", label: "Committee hub" }] : []),
   ];
 
   const otherAccounts = savedAccounts.filter((a) => a.email !== session?.user?.email);
@@ -82,13 +84,13 @@ export default function Nav() {
         hidden ? "opacity-0 -translate-y-6 pointer-events-none" : "opacity-100 translate-y-0"
       }`}
     >
-      <div className="w-full max-w-5xl bg-[var(--navy)] border border-white/10 rounded-full shadow-[0_20px_50px_-15px_rgba(0,0,0,0.6)] px-3 sm:px-5 h-14 flex items-center justify-between gap-4">
+      <div className="w-full max-w-5xl bg-[var(--navy)] border border-white/10 rounded-full shadow-[0_20px_50px_-15px_rgba(59,46,35,0.55)] px-3 sm:px-5 h-14 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <span
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-black font-black text-sm"
-            style={{ background: "var(--indigo)" }}
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: "var(--paper)" }}
           >
-            Q
+            <TargetLogo className="w-[22px] h-[22px]" />
           </span>
           <span className="font-display font-black text-white text-[15px] tracking-tight hidden sm:inline">
             Quest Board
@@ -122,7 +124,7 @@ export default function Nav() {
               </button>
 
               {switcherOpen && (
-                <div className="absolute top-14 right-16 w-64 bg-white rounded-2xl shadow-xl border border-black/10 p-2 z-50">
+                <div className="absolute top-14 right-16 w-64 bg-[var(--paper)] rounded-xl shadow-xl border border-black/10 p-2 z-50">
                   {otherAccounts.length === 0 ? (
                     <p className="text-xs text-[var(--ink)]/45 p-3">
                       No other accounts remembered on this browser yet. Sign up or sign in with another account to add one here.

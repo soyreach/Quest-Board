@@ -282,6 +282,60 @@ lists. Approved quests can't be archived.
 is only a suggestion) and can be changed later from the Edit button. The
 allowed range lives in `lib/constants.js` and is validated on the server.
 
+## Theme
+
+The site uses a bulletin-board look: a beige page (`--board`), cream paper for
+cards, modals and dropdowns (`--paper`), and a lighter wood brown (`--wood`) for
+the nav and primary buttons, with push-pin red (`--pin`) for small highlights.
+All colors are variables at the top of `app/globals.css`, so a palette change is
+one edit. Variable names from the earlier palette (`--indigo`, `--navy`,
+`--lavender`, ...) were kept and only their values changed, which is why they no
+longer match their names. Headings use Fraunces and body text uses DM Sans.
+Surfaces follow the approved mock: flat cream paper with a hairline border
+(`.shadow-paper`, `.paper-note`), quests pinned onto a framed cork bulletin board
+(`.corkboard`) with a bounty stamp and a difficulty tape, and folder-style tabs on
+the student hub.
+Transitions and animations were not changed.
+
+## Roles, sign-in and certificates
+
+**Sign-in.** Sign up asks for a full name (printed on certificates), a username,
+an email and a password. You can then sign in with either your username or your
+email (usernames ignore upper/lower case). Existing accounts keep working; their
+full name is whatever they signed up with, and the committee can correct the name
+when issuing a certificate.
+
+**Roles.** Student (default), Professor and Committee. Professor and Committee
+sign-up each need a secret code from `.env.local` (`PROFESSOR_SECRET_CODE`,
+`COMMITTEE_SECRET_CODE`). Add the committee line to your own `.env.local` and
+restart the dev server. The committee has its own hub at `/committee/dashboard`.
+
+**Certificates and rewards.** A student who reaches Gold (`lib/tiers.js`) appears
+under "Ready to issue" in the committee hub, and every committee account gets a
+notification. The committee can issue the certificate (editing the printed name,
+optionally adding a gift and a note, with a PDF preview) or send a stand-alone
+reward to any student. Each one is saved as an `Award` and the student is
+notified; a certificate notification carries the PDF as an attachment, and the
+student's hub lists every award with a Download PDF button.
+
+**The PDF** is built in the browser (`lib/certificatePdf.js`): the student's
+details are drawn on `public/certificate-template.png` and wrapped in a one-page
+A4 landscape PDF, with no extra packages. It is a picture, so the text can't be
+selected. The name and signature use the Great Vibes and Poppins Google fonts;
+without an internet connection they fall back to a serif font. To change the
+design, replace the template image (keep it 2000 x 1414 px) and adjust the
+coordinates in `drawCertificate`. The signer's name comes from the committee
+account that issued it, and the certificate text is saved at issue time, so a
+later rename doesn't change it.
+
+**Resubmitting from the hub.** Every quest in the student hub's In progress tab has a
+Resubmit button. It opens a dialog (`components/ResubmitDialog.jsx`) where the student
+drops a new file; `POST /api/submissions/<id>/resubmit` swaps it into the *same*
+submission (so the list doesn't fill up with copies), sets it back to Submitted, clears
+the old AI pre-check and notifies the professor. A quest with a revision request can
+always be resubmitted; a file still waiting for review can be replaced until the
+quest's deadline. Approved quests can't be resubmitted.
+
 ## Known gaps / simplifications
 
 - **Files live on local disk, not cloud storage** — see "File uploads" above.

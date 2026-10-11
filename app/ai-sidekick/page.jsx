@@ -71,7 +71,7 @@ export default function SidekickPage() {
       )}
 
       <div
-        className="grid md:grid-cols-[260px_1fr] gap-6 bg-white rounded-3xl shadow-[0_10px_40px_-20px_rgba(20,18,43,0.4)] overflow-hidden"
+        className="grid md:grid-cols-[260px_1fr] gap-6 bg-[var(--paper)] rounded-3xl shadow-[0_10px_40px_-20px_rgba(20,18,43,0.4)] overflow-hidden"
         style={{ minHeight: 560 }}
       >
         <div className="border-r border-black/5 p-4 bg-[var(--lavender)] flex flex-col">
@@ -85,7 +85,7 @@ export default function SidekickPage() {
                 key={t._id}
                 onClick={() => selectThread(t._id)}
                 className={`w-full text-left px-3 py-2 rounded-xl text-sm flex items-center justify-between gap-2 group transition ${
-                  t._id === activeId ? "bg-white shadow-sm font-medium" : "text-[var(--ink)]/60 hover:bg-white/70"
+                  t._id === activeId ? "bg-[var(--paper)] shadow-sm font-medium" : "text-[var(--ink)]/60 hover:bg-white/70"
                 }`}
               >
                 <span className="truncate">{t.title || "New chat"}</span>

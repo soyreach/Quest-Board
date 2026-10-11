@@ -34,7 +34,7 @@ export default function FilterDropdown({ label, value, options, onChange, width 
         type="button"
         onClick={() => setOpen((o) => !o)}
         title={current?.label}
-        className="w-full text-sm rounded-full border border-black/10 pl-4 pr-3 py-2 bg-white flex items-center justify-between gap-2 hover:border-black/25 transition-colors"
+        className="w-full text-sm rounded-full border border-black/10 pl-4 pr-3 py-2 bg-[var(--paper)] flex items-center justify-between gap-2 hover:border-black/25 transition-colors"
       >
         <span className="truncate">{current ? current.label : label}</span>
         <svg
@@ -47,7 +47,7 @@ export default function FilterDropdown({ label, value, options, onChange, width 
       </button>
 
       <div
-        className={`absolute left-0 top-[calc(100%+8px)] min-w-full w-max max-w-xs bg-white rounded-2xl border border-black/10 shadow-xl p-1.5 z-30 origin-top transition-all duration-150 ease-out ${
+        className={`absolute left-0 top-[calc(100%+8px)] min-w-full w-max max-w-xs bg-[var(--paper)] rounded-2xl border border-black/10 shadow-xl p-1.5 z-30 origin-top transition-all duration-150 ease-out ${
           open ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-1 pointer-events-none"
         }`}
       >

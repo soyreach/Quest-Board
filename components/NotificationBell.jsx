@@ -3,11 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { downloadCertificatePdf } from "@/lib/certificatePdf";
 
 const POLL_MS = 30000;
 
 const ICONS = {
   new_quest: "📌",
+  certificate_issued: "🎓",
+  reward_received: "🎁",
+  gold_ready: "🏅",
   quest_updated: "🔄",
   deadline_soon: "⏰",
   revision_requested: "✏️",
@@ -43,6 +47,8 @@ export default function NotificationBell({ closeSignal, onOpen }) {
   const [unread, setUnread] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [ringing, setRinging] = useState(false);
+  const [fileBusy, setFileBusy] = useState(null);
+  const [fileError, setFileError] = useState("");
 
   const wrapRef = useRef(null);
   const unreadRef = useRef(0);
@@ -158,6 +164,24 @@ export default function NotificationBell({ closeSignal, onOpen }) {
     }
   }
 
+  // Notifications can carry a file (the certificate). It's built on demand from
+  // the certificate record, so it is always the same PDF the student can get
+  // from their hub.
+  async function downloadAttachment(n) {
+    setFileError("");
+    setFileBusy(n._id);
+    try {
+      const res = await fetch(`/api/awards/${n.attachment.awardId}`);
+      if (!res.ok) throw new Error("not found");
+      await downloadCertificatePdf(await res.json());
+      markRead([n._id]);
+    } catch {
+      setFileError("Couldn't prepare the certificate. Try again.");
+    } finally {
+      setFileBusy(null);
+    }
+  }
+
   async function dismiss(n) {
     setItems((list) => list.filter((x) => x._id !== n._id));
     if (!n.read) setUnread((u) => Math.max(0, u - 1));
@@ -200,7 +224,7 @@ export default function NotificationBell({ closeSignal, onOpen }) {
         aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className={`relative w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-white bg-white/10 hover:bg-white/20 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--indigo)] ${
+        className={`relative w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-white bg-white/10 hover:bg-white/20 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--paper)] ${
           ringing ? "bell-ring" : ""
         }`}
       >
@@ -219,8 +243,8 @@ export default function NotificationBell({ closeSignal, onOpen }) {
         </svg>
         {unread > 0 && (
           <span
-            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-black flex items-center justify-center"
-            style={{ background: "var(--indigo)" }}
+            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
+            style={{ background: "var(--pin)" }}
           >
             {unread > 99 ? "99+" : unread}
           </span>
@@ -231,7 +255,7 @@ export default function NotificationBell({ closeSignal, onOpen }) {
         <div
           role="dialog"
           aria-label="Notifications"
-          className="absolute top-14 right-[-0.5rem] sm:right-0 w-[min(24rem,calc(100vw-2rem))] bg-white text-[var(--ink)] rounded-2xl shadow-xl border border-black/10 z-50 overflow-hidden"
+          className="absolute top-14 right-[-0.5rem] sm:right-0 w-[min(24rem,calc(100vw-2rem))] bg-[var(--paper)] text-[var(--ink)] rounded-xl shadow-xl border border-black/10 z-50 overflow-hidden"
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-black/5">
             <h3 className="font-display font-semibold text-sm">Notifications</h3>
@@ -259,7 +283,7 @@ export default function NotificationBell({ closeSignal, onOpen }) {
               {items.map((n) => (
                 <li
                   key={n._id}
-                  className={`group flex gap-2 px-4 py-3 border-b border-black/5 last:border-b-0 ${
+                  className={`group flex flex-wrap gap-2 px-4 py-3 border-b border-black/5 last:border-b-0 ${
                     n.read ? "" : "bg-[var(--indigo-soft)]"
                   }`}
                 >
@@ -277,7 +301,7 @@ export default function NotificationBell({ closeSignal, onOpen }) {
                         {!n.read && (
                           <span
                             className="w-2 h-2 rounded-full shrink-0"
-                            style={{ background: "var(--indigo)" }}
+                            style={{ background: "var(--pin)" }}
                             aria-label="Unread"
                           />
                         )}
@@ -294,10 +318,22 @@ export default function NotificationBell({ closeSignal, onOpen }) {
                   >
                     ✕
                   </button>
+                  {n.attachment?.awardId && (
+                    <button
+                      type="button"
+                      onClick={() => downloadAttachment(n)}
+                      disabled={fileBusy === n._id}
+                      className="basis-full ml-8 text-left text-xs font-semibold underline text-[var(--wood)] hover:text-[var(--ink)] disabled:opacity-50 disabled:no-underline"
+                    >
+                      📎 {fileBusy === n._id ? "Preparing PDF…" : n.attachment.label || "Download"}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
           )}
+
+          {fileError && <div className="px-4 py-2 text-xs text-red-600 border-t border-black/5">{fileError}</div>}
 
           {items.length > 0 && (
             <div className="px-4 py-2 border-t border-black/5 text-right">

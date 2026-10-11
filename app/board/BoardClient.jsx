@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import FilterDropdown from "@/components/FilterDropdown";
 
+const TAPE = { Apprentice: "tape-a", Journeyman: "tape-j", Master: "tape-m" };
+
 function formatDeadline(deadline) {
   if (!deadline) return null;
   const d = new Date(deadline);
@@ -103,7 +105,7 @@ export default function BoardClient({ initialQuests }) {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-6 bg-white rounded-2xl p-4 shadow-[0_10px_30px_-18px_rgba(20,18,43,0.4)]">
+      <div className="flex flex-wrap items-center gap-3 mb-6 bg-[var(--paper)] rounded-xl p-4 shadow-paper">
         <FilterDropdown
           width="220px"
           label="All courses"
@@ -147,27 +149,22 @@ export default function BoardClient({ initialQuests }) {
         </span>
       </div>
 
-      <div className="corkboard p-8 md:p-12 min-h-[560px] grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
+      <div className="corkboard p-8 md:p-10 min-h-[560px] grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
         {!loading && quests.length === 0 && (
-          <p className="text-white/70 col-span-full text-center py-20">No quests match those filters yet.</p>
+          <p className="text-[var(--ink)]/60 col-span-full text-center py-20">No quests match those filters yet.</p>
         )}
         {quests.map((q, i) => (
           <div
             key={q._id}
             className={`quest-card p-5 ${dissolvingIds.includes(q._id) ? "dissolving" : ""}`}
-            style={{ transform: `rotate(${(i % 5) - 2}deg)` }}
+            style={{ transform: `rotate(${((i % 5) - 2) * 0.7}deg)` }}
             onClick={() => { setOpenQuest(q); setSubmitError(""); setFile(null); }}
           >
             <div className="pin" />
-            <div className="flex justify-between items-start mb-3">
-              <span className="text-[10px] font-semibold tracking-wide text-[var(--cork-dark)]/70">
-                {q.course} · {q.difficulty}
-              </span>
-              <span className="badge" style={{ background: "rgba(201,154,60,0.18)", color: "#7a5a1e" }}>
-                +{q.bountyPoints} PTS
-              </span>
-            </div>
-            <h3 className="font-hand text-xl leading-snug mb-2" style={{ color: "#3a2c14" }}>{q.title}</h3>
+            <div className="stamp">{q.bountyPoints}<small>PTS</small></div>
+            <span className={`tape ${TAPE[q.difficulty] || "tape-j"}`}>{q.difficulty}</span>
+            <h3 className="font-display font-semibold text-lg leading-snug mt-2 mb-0.5 pr-16" style={{ color: "var(--ink)" }}>{q.title}</h3>
+            <div className="text-xs mb-2 text-[var(--wood)]/80">{q.course}</div>
             <p className="text-xs leading-relaxed" style={{ color: "#5c4a2c" }}>
               {(q.description || "").slice(0, 90)}…
             </p>
@@ -193,7 +190,7 @@ export default function BoardClient({ initialQuests }) {
               </span>
               <button onClick={() => setOpenQuest(null)} className="text-2xl leading-none text-[#5c4a2c]/60 hover:text-[#5c4a2c]">&times;</button>
             </div>
-            <h2 className="font-hand text-3xl mb-3" style={{ color: "#3a2c14" }}>{openQuest.title}</h2>
+            <h2 className="font-display font-semibold text-3xl mb-3" style={{ color: "var(--ink)" }}>{openQuest.title}</h2>
             <p className="text-sm mb-5" style={{ color: "#4a3a20" }}>{openQuest.industryContext || openQuest.description}</p>
 
             {(openQuest.deadline || openQuest.attachmentUrl) && (
@@ -217,7 +214,7 @@ export default function BoardClient({ initialQuests }) {
             </div>
 
             {session?.user?.role === "Student" ? (
-              <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.4)" }}>
+              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.4)" }}>
                 <h4 className="font-semibold text-sm mb-3" style={{ color: "#3a2c14" }}>Turn in your work</h4>
 
                 <div
@@ -228,7 +225,7 @@ export default function BoardClient({ initialQuests }) {
                   className="rounded-xl border-2 border-dashed p-6 text-center cursor-pointer mb-3 transition"
                   style={{
                     borderColor: dragOver ? "var(--indigo)" : "rgba(0,0,0,0.15)",
-                    background: dragOver ? "rgba(56,198,236,0.08)" : "rgba(255,255,255,0.5)",
+                    background: dragOver ? "rgba(117,96,75,0.1)" : "rgba(255,255,255,0.5)",
                   }}
                 >
                   <input

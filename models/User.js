@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true },
     role: {
       type: String,
-      enum: ["Student", "Professor", "Admin", null],
+      enum: ["Student", "Professor", "Committee", "Admin", null],
       default: null,
     },
     bountyPoints: { type: Number, default: 0 },

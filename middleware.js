@@ -8,7 +8,14 @@ export default withAuth(
 
     // Faculty-only area.
     if (pathname.startsWith("/professor") && role !== "Professor") {
-      return NextResponse.redirect(new URL("/student/dashboard", req.url));
+      return NextResponse.redirect(
+        new URL(role === "Committee" ? "/committee/dashboard" : "/student/dashboard", req.url)
+      );
+    }
+
+    // School committee area.
+    if (pathname.startsWith("/committee") && role !== "Committee") {
+      return NextResponse.redirect(new URL("/", req.url));
     }
 
     // Anyone signed in (with a role already chosen) can reach the student
@@ -35,5 +42,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/professor/:path*", "/student/:path*", "/board/:path*", "/ai-sidekick/:path*"],
+  matcher: ["/professor/:path*", "/committee/:path*", "/student/:path*", "/board/:path*", "/ai-sidekick/:path*"],
 };

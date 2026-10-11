@@ -246,15 +246,15 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5 mb-10">
-        <div className="bg-white rounded-3xl p-5 shadow-[0_10px_30px_-20px_rgba(20,18,43,0.4)]">
+        <div className="bg-[var(--paper)] rounded-3xl p-5 shadow-[0_10px_30px_-20px_rgba(20,18,43,0.4)]">
           <div className="text-xs text-[var(--ink)]/45 mb-1">Posted this term</div>
           <div className="font-display font-bold text-2xl">{quests.length} quests</div>
         </div>
-        <div className="bg-white rounded-3xl p-5 shadow-[0_10px_30px_-20px_rgba(20,18,43,0.4)]">
+        <div className="bg-[var(--paper)] rounded-3xl p-5 shadow-[0_10px_30px_-20px_rgba(20,18,43,0.4)]">
           <div className="text-xs text-[var(--ink)]/45 mb-1">Pending review</div>
           <div className="font-display font-bold text-2xl">{queue.length} submissions</div>
         </div>
-        <div className="bg-white rounded-3xl p-5 shadow-[0_10px_30px_-20px_rgba(20,18,43,0.4)]">
+        <div className="bg-[var(--paper)] rounded-3xl p-5 shadow-[0_10px_30px_-20px_rgba(20,18,43,0.4)]">
           <div className="text-xs text-[var(--ink)]/45 mb-1">Points awarded</div>
           <div className="font-display font-bold text-2xl">
             {quests.reduce((sum, q) => sum + (q.bountyPoints || 0), 0)} pts posted
@@ -300,7 +300,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
           return filteredQuests.map((q) => {
             const expired = isExpired(q);
             return (
-              <div key={q._id} className="p-5 rounded-2xl bg-white border border-black/5">
+              <div key={q._id} className="p-5 rounded-2xl bg-[var(--paper)] border border-black/5">
                 <div className="flex justify-between mb-2">
                   <span className="badge bg-[var(--indigo-soft)] text-[var(--violet-2)]">{q.status}</span>
                   <span className="text-xs font-semibold" style={{ color: "var(--gold)" }}>+{q.bountyPoints} pts</span>
@@ -334,7 +334,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
       <div className="space-y-4">
         {queue.length === 0 && <p className="text-sm text-[var(--ink)]/50">Nothing waiting on you right now.</p>}
         {queue.map((s) => (
-          <div key={s._id} className="bg-white rounded-2xl p-5 border border-black/5">
+          <div key={s._id} className="bg-[var(--paper)] rounded-2xl p-5 border border-black/5">
             <div className="flex flex-wrap justify-between gap-3 mb-3">
               <div>
                 <div className="font-medium">{s.student?.name} — {s.quest?.title}</div>
@@ -373,7 +373,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                   </div>
 
                   {s.aiPreCheck.feedbackSummary && (
-                    <div className="bg-white border border-black/5 rounded-xl p-3 text-sm mb-3">
+                    <div className="bg-[var(--paper)] border border-black/5 rounded-xl p-3 text-sm mb-3">
                       <div className="text-xs font-semibold text-[var(--ink)]/45 mb-1">AI feedback</div>
                       {s.aiPreCheck.feedbackSummary}
                     </div>

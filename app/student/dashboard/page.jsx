@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getUserProfile, getMySubmissions } from "@/lib/queries";
+import { getUserProfile, getMySubmissions, getMyAwards } from "@/lib/queries";
 import StudentDashboardClient from "./StudentDashboardClient";
 
 export default async function StudentDashboardPage() {
@@ -13,15 +13,17 @@ export default async function StudentDashboardPage() {
     );
   }
 
-  const [me, submissions] = await Promise.all([
+  const [me, submissions, awards] = await Promise.all([
     getUserProfile(session.user.id),
     getMySubmissions(session.user.id),
+    getMyAwards(session.user.id),
   ]);
 
   return (
     <StudentDashboardClient
       initialMe={me}
       initialSubmissions={submissions}
+      initialAwards={awards}
       userName={session.user.name}
       userEmail={session.user.email}
     />

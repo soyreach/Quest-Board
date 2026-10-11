@@ -1,6 +1,26 @@
 import Link from "next/link";
+import ScrollButton from "@/components/ScrollButton";
+import { getTopQuest } from "@/lib/queries";
 
-export default function HomePage() {
+// Always read the current board, so "Quest of the week" never goes stale.
+export const dynamic = "force-dynamic";
+
+const TAPE = { Apprentice: "tape-a", Journeyman: "tape-j", Master: "tape-m" };
+
+// The home page must still load if the database is unreachable.
+async function loadTopQuest() {
+  try {
+    return await getTopQuest();
+  } catch {
+    return null;
+  }
+}
+
+export default async function HomePage() {
+  const quest = await loadTopQuest();
+  const description = quest?.description || "";
+  const blurb = description.length > 110 ? `${description.slice(0, 110).trimEnd()}…` : description;
+
   return (
     <div className="page-enter">
       <div className="hero-bg text-white -mt-24">
@@ -17,8 +37,7 @@ export default function HomePage() {
             marketplace, no spam, just your own coursework made to count.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/board" className="btn btn-light">Enter the board</Link>
-            <Link href="/ai-sidekick" className="btn btn-ghost">See how it works</Link>
+            <ScrollButton targetId="how-it-works" className="btn btn-light">See how it works</ScrollButton>
           </div>
           <div className="mt-16 pt-8 border-t border-white/10 w-full flex flex-col items-center gap-3">
             <span className="text-white/35 text-xs uppercase tracking-wide">Quests currently posted across</span>
@@ -33,37 +52,47 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-24">
-        <div className="grid md:grid-cols-2 gap-16 items-start">
+      <div className="max-w-6xl mx-auto px-6 py-24">
+        <div className="grid md:grid-cols-2 gap-14 items-center">
           <div>
-            <h2 className="font-display font-bold text-3xl mb-4">A closed loop, not an open market</h2>
-            <p className="text-[var(--ink)]/65 leading-relaxed">
-              Freelance boards turn students loose on strangers&apos; work. Quest Board keeps
-              everything inside the syllabus: your professors already know what good work looks
-              like in their course, so their sign-off is worth something on a resume — and every
-              quest ties back to material you&apos;re already learning.
+            <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/55">
+              AUPP · Exercises with real bounties
+            </span>
+            <h2 className="font-display font-bold text-4xl md:text-5xl leading-[1.1] mt-3 mb-5">
+              Pick a quest. Build something real. <span className="md:block">Earn your tier.</span>
+            </h2>
+            <p className="text-[var(--ink)]/65 leading-relaxed mb-8 max-w-md">
+              Professors pin exercises with bounty points. Students take them on, hand in their
+              work, and climb from Bronze to Gold.
             </p>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/board" className="btn btn-primary">Browse the board</Link>
+              <Link href="/professor/dashboard" className="btn btn-outline">Post a quest</Link>
+            </div>
           </div>
-          <div className="grid sm:grid-cols-2 gap-5">
-            {[
-              ["🎯", "Course-anchored", "Every quest maps to a real syllabus topic, set by the professor teaching it."],
-              ["🏅", "Faculty-verified", "Points are only awarded once a professor reviews and signs off on the work."],
-              ["📄", "CV-ready output", "Completed quests convert into resume bullet points, written in STAR format."],
-              ["🎓", "Real certificates", "Cross a points threshold and the school committee issues a certificate and gift."],
-            ].map(([icon, title, body]) => (
-              <div key={title} className="p-6 rounded-3xl bg-white shadow-[0_10px_30px_-15px_rgba(20,18,43,0.25)]">
-                <div className="w-10 h-10 rounded-xl mb-4 flex items-center justify-center" style={{ background: "var(--indigo-soft)" }}>
-                  {icon}
-                </div>
-                <h3 className="font-display font-semibold mb-1">{title}</h3>
-                <p className="text-sm text-[var(--ink)]/60">{body}</p>
-              </div>
-            ))}
+
+          <div className="paper-note" style={{ rotate: "-1.4deg" }}>
+            <div className="pin" />
+            {quest && <div className="stamp">{quest.bountyPoints}<small>PTS</small></div>}
+            <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/50">Quest of the week</span>
+            {quest ? (
+              <>
+                <h3 className="font-display font-bold text-2xl mt-2 mb-1 pr-16">{quest.title}</h3>
+                <div className="text-sm text-[var(--ink)]/60">{quest.course}</div>
+                <p className="text-[var(--ink)]/70 my-4">{blurb}</p>
+                <span className={`tape ${TAPE[quest.difficulty] || "tape-j"}`}>{quest.difficulty}</span>
+              </>
+            ) : (
+              <>
+                <h3 className="font-display font-bold text-2xl mt-2 mb-1">No open quests yet</h3>
+                <p className="text-[var(--ink)]/70 my-4">Professors are still pinning exercises. Check back soon.</p>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 pb-24">
+      <div id="how-it-works" className="max-w-7xl mx-auto px-6 pb-24 scroll-mt-28">
         <h2 className="font-display font-bold text-3xl mb-10 text-center">How it works</h2>
         <div className="grid md:grid-cols-3 gap-6">
           {[
@@ -80,22 +109,22 @@ export default function HomePage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 pb-28">
-        <div className="stat-card text-white p-10 md:p-14 relative overflow-hidden">
+        <div className="stat-card p-10 md:p-14 relative overflow-hidden">
           <div
             className="absolute -right-24 -top-24 w-96 h-96 rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(56,198,236,0.35), transparent 70%)" }}
+            style={{ background: "radial-gradient(circle, rgba(139,112,89,0.14), transparent 70%)" }}
           />
-          <span className="badge bg-white/10 border border-white/15 mb-5 relative">Outcomes</span>
+          <span className="badge bg-[var(--lavender)] border border-[color:var(--line)] mb-5 relative">Outcomes</span>
           <h2 className="font-display font-bold text-3xl md:text-4xl mb-3 relative max-w-lg">
             Real activity across this semester&apos;s quest board
           </h2>
-          <p className="text-white/60 mb-10 max-w-md relative">
+          <p className="text-[var(--ink)]/60 mb-10 max-w-md relative">
             Numbers pulled from active courses running quests this term.
           </p>
           <div className="grid sm:grid-cols-3 gap-8 relative">
-            <div><div className="font-display font-bold text-4xl mb-1">128</div><div className="text-white/55 text-sm">Active quests posted</div></div>
-            <div><div className="font-display font-bold text-4xl mb-1">41,300</div><div className="text-white/55 text-sm">Bounty points awarded</div></div>
-            <div><div className="font-display font-bold text-4xl mb-1">37</div><div className="text-white/55 text-sm">Certificates claimed</div></div>
+            <div><div className="font-display font-bold text-4xl mb-1">128</div><div className="text-[var(--ink)]/55 text-sm">Active quests posted</div></div>
+            <div><div className="font-display font-bold text-4xl mb-1">41,300</div><div className="text-[var(--ink)]/55 text-sm">Bounty points awarded</div></div>
+            <div><div className="font-display font-bold text-4xl mb-1">37</div><div className="text-[var(--ink)]/55 text-sm">Certificates claimed</div></div>
           </div>
         </div>
       </div>
