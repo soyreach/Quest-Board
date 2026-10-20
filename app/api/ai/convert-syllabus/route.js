@@ -61,7 +61,7 @@ export async function POST(req) {
 
   try {
     const { text } = await generateText({
-      model: google("models/gemini-3.6-flash"),
+      model: google("models/gemini-3.5-flash-lite"),
       system: SYSTEM_PROMPT,
       prompt: syllabusText,
       temperature: 0.4,

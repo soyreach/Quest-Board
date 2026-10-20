@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut, signIn } from "next-auth/react";
@@ -24,6 +24,19 @@ export default function Nav() {
   const [savedAccounts, setSavedAccounts] = useState([]);
   const [switching, setSwitching] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navRef = useRef(null);
+
+  // The phone menu closes after you pick a page, press Escape, or tap outside it.
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e) => { if (e.key === "Escape") setMenuOpen(false); };
+    const onClick = (e) => { if (navRef.current && !navRef.current.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onClick);
+    return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("mousedown", onClick); };
+  }, [menuOpen]);
 
   useEffect(() => {
     if (switcherOpen) setSavedAccounts(getSavedAccounts());
@@ -80,6 +93,8 @@ export default function Nav() {
 
   return (
     <nav
+      ref={navRef}
+      aria-label="Main"
       className={`fixed top-4 sm:top-6 inset-x-0 z-40 flex justify-center px-4 transition-all duration-500 ease-out ${
         hidden ? "opacity-0 -translate-y-6 pointer-events-none" : "opacity-100 translate-y-0"
       }`}
@@ -102,6 +117,7 @@ export default function Nav() {
             <Link
               key={l.href}
               href={l.href}
+              aria-current={pathname === l.href ? "page" : undefined}
               className={`nav-link !text-white ${pathname === l.href ? "active" : "opacity-85 hover:opacity-100"}`}
             >
               {l.label}
@@ -110,9 +126,21 @@ export default function Nav() {
         </div>
 
         <div className="flex items-center gap-2 relative shrink-0">
+          <button
+            type="button"
+            className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-white bg-white/10 hover:bg-white/20 transition-colors"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            onClick={() => { setMenuOpen((o) => !o); setSwitcherOpen(false); }}
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              {menuOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+            </svg>
+          </button>
           {status === "authenticated" ? (
             <>
-              <span className="text-xs text-white/50 hidden lg:inline mr-1">
+              <span className="text-xs text-white/90 hidden lg:inline mr-1">
                 {session.user?.name?.split(" ")[0]}
                 {session.user?.role ? ` · ${session.user.role}` : ""}
               </span>
@@ -126,7 +154,7 @@ export default function Nav() {
               {switcherOpen && (
                 <div className="absolute top-14 right-16 w-64 bg-[var(--paper)] rounded-xl shadow-xl border border-black/10 p-2 z-50">
                   {otherAccounts.length === 0 ? (
-                    <p className="text-xs text-[var(--ink)]/45 p-3">
+                    <p className="text-xs text-[var(--ink)]/70 p-3">
                       No other accounts remembered on this browser yet. Sign up or sign in with another account to add one here.
                     </p>
                   ) : (
@@ -138,10 +166,10 @@ export default function Nav() {
                           onClick={() => switchTo(a)}
                         >
                           <div className="font-medium">{a.username || a.email}</div>
-                          <div className="text-xs text-[var(--ink)]/45">{a.email} · {a.role}</div>
+                          <div className="text-xs text-[var(--ink)]/70">{a.email} · {a.role}</div>
                         </button>
                         <button
-                          className="text-[var(--ink)]/30 hover:text-red-500 text-xs px-2"
+                          className="text-[var(--ink)]/70 hover:text-red-500 text-xs px-2"
                           onClick={() => { removeSavedAccount(a.email); setSavedAccounts(getSavedAccounts()); }}
                         >
                           ✕
@@ -163,6 +191,19 @@ export default function Nav() {
           )}
         </div>
       </div>
+
+      {menuOpen && (
+        <div
+          id="mobile-menu"
+          className="mobile-menu md:hidden absolute left-4 right-4 top-[4.25rem] bg-[var(--paper)] text-[var(--ink)] rounded-xl shadow-xl border border-[color:var(--line)] p-2"
+        >
+          {links.map((l) => (
+            <Link key={l.href} href={l.href} aria-current={pathname === l.href ? "page" : undefined}>
+              {l.label}
+            </Link>
+          ))}
+        </div>
+      )}
     </nav>
   );
 }

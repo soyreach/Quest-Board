@@ -99,13 +99,13 @@ export default function LoginPage() {
 
         <div className="flex gap-6 mb-6 border-b border-black/10">
           <button
-            className={`pb-3 text-sm font-semibold ${mode === "signup" ? "text-[var(--indigo)] border-b-2 border-[var(--indigo)]" : "text-[var(--ink)]/45"}`}
+            className={`pb-3 text-sm font-semibold ${mode === "signup" ? "text-[var(--indigo)] border-b-2 border-[var(--indigo)]" : "text-[var(--ink)]/70"}`}
             onClick={() => { setMode("signup"); setError(""); }}
           >
             Sign up
           </button>
           <button
-            className={`pb-3 text-sm font-semibold ${mode === "signin" ? "text-[var(--indigo)] border-b-2 border-[var(--indigo)]" : "text-[var(--ink)]/45"}`}
+            className={`pb-3 text-sm font-semibold ${mode === "signin" ? "text-[var(--indigo)] border-b-2 border-[var(--indigo)]" : "text-[var(--ink)]/70"}`}
             onClick={() => { setMode("signin"); setError(""); }}
           >
             Sign in

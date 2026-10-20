@@ -57,25 +57,25 @@ export default function ResubmitDialog({ submission, onClose, onResubmitted }) {
         onClick={(e) => e.stopPropagation()}
       >
         <h3 id="resubmit-title" className="font-display font-semibold text-xl mb-1">Resubmit your work</h3>
-        <p className="text-sm text-[var(--ink)]/60 mb-4">
+        <p className="text-sm text-[var(--ink)]/70 mb-4">
           {submission.quest?.title}
           {submission.quest?.course ? ` · ${submission.quest.course}` : ""}
         </p>
 
         {needsRevision && submission.professorFeedback && (
           <div className="rounded-xl bg-[var(--lavender)] p-3 mb-4">
-            <div className="text-xs font-medium text-[var(--ink)]/55 mb-1">Your professor asked for changes</div>
+            <div className="text-xs font-medium text-[var(--ink)]/70 mb-1">Your professor asked for changes</div>
             <p className="text-sm italic">&quot;{submission.professorFeedback}&quot;</p>
           </div>
         )}
         {!needsRevision && (
-          <p className="text-xs text-[var(--ink)]/55 mb-4">
+          <p className="text-xs text-[var(--ink)]/70 mb-4">
             Your professor hasn&apos;t reviewed this yet. A new file replaces the one they will see.
           </p>
         )}
 
         {submission.fileName && (
-          <p className="text-xs text-[var(--ink)]/55 mb-2">Current file: {submission.fileName}</p>
+          <p className="text-xs text-[var(--ink)]/70 mb-2">Current file: {submission.fileName}</p>
         )}
 
         <div

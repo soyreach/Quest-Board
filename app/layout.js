@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
         <Providers>
           <Nav />
           <main className="pt-24">{children}</main>
-          <footer className="border-t border-black/5 py-10 text-center text-xs text-[var(--ink)]/40">
+          <footer className="border-t border-black/5 py-10 text-center text-xs text-[var(--ink)]/70">
             Quest Board — a closed-loop project board for AUPP coursework.
           </footer>
         </Providers>

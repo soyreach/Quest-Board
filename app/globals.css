@@ -25,7 +25,7 @@
   --indigo-soft:#F4EFB8; /* soft cream tint for chips / unread rows */
   --navy:#75604B;        /* floating nav background */
   --lavender:#F4EFB8;    /* inset fills inside cards (was near-white) */
-  --muted:#7A6C57;
+  --muted:#6A5D49;
   --line:rgba(59,46,35,0.14);   /* hairline borders on paper */
   --stamp:#B33A26;             /* bounty stamp ink */
   --shadow-paper:0 1px 0 rgba(59,46,35,0.08), 0 10px 18px -12px rgba(59,46,35,0.45);
@@ -107,8 +107,8 @@ h1,h2,h3,h4,.font-display{
   background-image:
     radial-gradient(circle at 18% 22%, rgba(255,255,255,0.28) 0, transparent 38%),
     radial-gradient(circle at 82% 78%, rgba(117,96,75,0.12) 0, transparent 42%),
-    radial-gradient(rgba(117,96,75,0.22) 1px, transparent 1.4px),
-    radial-gradient(rgba(255,255,255,0.35) 1px, transparent 1.4px);
+    radial-gradient(rgba(117,96,75,0.13) 1px, transparent 1.4px),
+    radial-gradient(rgba(255,255,255,0.22) 1px, transparent 1.4px);
   background-size:auto, auto, 9px 9px, 13px 13px;
   background-position:0 0, 0 0, 0 0, 4px 5px;
   /* lighter-brown wooden frame, lit from the top for a slight bevel */
@@ -205,3 +205,23 @@ nav :focus-visible{outline-color:var(--paper);}
 .folder-tab{padding:.55rem 1.1rem; border:1px solid var(--line); border-bottom:0; border-radius:12px 12px 0 0; color:var(--muted); font-weight:600; white-space:nowrap; background:transparent; transition:color .2s ease, background .2s ease;}
 .folder-tab.active{background:var(--paper); color:var(--ink); position:relative; top:1px;}
 .folder-panel{background:var(--paper); border:1px solid var(--line); border-radius:0 14px 14px 14px; overflow:hidden;}
+
+/* ---- polish pass ---- */
+/* touch-friendly buttons */
+.btn{min-height:2.75rem;} .btn-sm{min-height:2.5rem;}
+/* status chips: a color you can read AND a word, so status isn't carried by color alone */
+.badge-ok{background:#D9E8C4; color:#2F4A1A;}
+.badge-warn{background:#F6DDB6; color:#6B3F0B;}
+.badge-info{background:#E8E3B6; color:#3B2E23;}
+.badge-quiet{background:rgba(59,46,35,0.08); color:#4A3D30;}
+/* gold used for small text needs a darker ink to be readable on cream */
+.text-gold-ink{color:#8A5A0B;}
+/* body copy on dark hero */
+.hero-bg a:focus-visible{outline-color:var(--paper);}
+/* mobile navigation panel */
+.mobile-menu a{display:flex; align-items:center; min-height:3rem; padding:0 1rem; border-radius:12px; font-weight:600;}
+.mobile-menu a[aria-current="page"]{background:var(--soft,#F4EFB8); box-shadow:inset 3px 0 0 var(--wood);}
+.mobile-menu a:hover{background:var(--lavender);}
+/* equal-height cards with the footer pinned to the bottom */
+.quest-card{display:flex; flex-direction:column;}
+.quest-card .tape{align-self:flex-start;}

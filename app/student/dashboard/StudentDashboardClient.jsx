@@ -5,6 +5,10 @@ import { MAX_TIER_POINTS, barSegments, bonusEarned, currentTier, nextTier } from
 import { downloadCertificatePdf } from "@/lib/certificatePdf";
 import ResubmitDialog from "@/components/ResubmitDialog";
 
+// Words and colors for each stage, so the status reads at a glance.
+const STATUS_LABEL = { Submitted: "Awaiting review", AI_PreChecked: "Awaiting review", Needs_Revision: "Needs revision" };
+const STATUS_STYLE = { Submitted: "badge-info", AI_PreChecked: "badge-info", Needs_Revision: "badge-warn" };
+
 export default function StudentDashboardClient({ initialMe, initialSubmissions, initialAwards = [], userName, userEmail }) {
   const [me] = useState(initialMe);
   const [submissions, setSubmissions] = useState(initialSubmissions);
@@ -85,7 +89,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
         <div className="flex items-start justify-between gap-3 mb-1">
           <div className="font-medium">{s.quest?.title}</div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="badge bg-[var(--paper)] text-[var(--ink)]/60">{s.status.replace("_", " ")}</span>
+            <span className={`badge ${STATUS_STYLE[s.status] || "badge-quiet"}`}>{STATUS_LABEL[s.status] || s.status.replace("_", " ")}</span>
             {inArchive ? (
               <button
                 type="button"
@@ -100,30 +104,34 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                 onClick={() => setArchived(s._id, true)}
                 aria-label={`Move "${s.quest?.title}" to Archive`}
                 title="Move to Archive"
-                className="w-7 h-7 rounded-full flex items-center justify-center text-sm text-[var(--ink)]/35 hover:text-[var(--ink)] hover:bg-[var(--paper)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--indigo)]"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-sm text-[var(--ink)]/70 hover:text-[var(--ink)] hover:bg-[var(--paper)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--indigo)]"
               >
                 ✕
               </button>
             )}
           </div>
         </div>
-        <div className="text-xs text-[var(--ink)]/50 mb-2">{s.quest?.course}</div>
+        <div className="text-xs text-[var(--ink)]/70 mb-2">{s.quest?.course}</div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           {s.fileUrl ? (
-            <a href={`/api/submissions/${s._id}/download`} className="text-xs underline text-[var(--indigo)]">
+            <a href={`/api/submissions/${s._id}/download`} className="text-sm underline text-[var(--indigo)] break-all">
               📄 {s.fileName}
             </a>
           ) : (
             <span />
           )}
           {!inArchive && (
-            <button type="button" className="btn btn-primary btn-sm" onClick={() => setResubmitFor(s)}>
+            <button
+              type="button"
+              className={`btn btn-sm ${s.status === "Needs_Revision" ? "btn-primary" : "btn-outline"}`}
+              onClick={() => setResubmitFor(s)}
+            >
               Resubmit
             </button>
           )}
         </div>
         {s.status === "Needs_Revision" && s.professorFeedback && (
-          <p className="text-sm text-[var(--ink)]/60 italic mt-2">&quot;{s.professorFeedback}&quot;</p>
+          <p className="text-sm text-[var(--ink)]/70 italic mt-2">&quot;{s.professorFeedback}&quot;</p>
         )}
         {s.status === "Needs_Revision" && s.professorFeedbackFileUrl && (
           <a href={`/api/submissions/${s._id}/download?which=feedback`} className="text-xs underline text-[var(--indigo)] block mt-1">
@@ -149,10 +157,10 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
             {tier ? `${tier.name} tier` : "No tier yet"}
           </div>
           <h1 className="font-display font-semibold text-2xl">{me?.name || userName}</h1>
-          <p className="text-[var(--ink)]/60 text-sm">{userEmail}</p>
+          <p className="text-[var(--ink)]/70 text-sm">{userEmail}</p>
         </div>
         <div className="ml-auto text-right">
-          <div className="text-[var(--ink)]/55 text-xs mb-1">Total bounty points</div>
+          <div className="text-[var(--ink)]/70 text-xs mb-1">Total bounty points</div>
           <div className="font-display font-bold text-4xl">{points}</div>
         </div>
       </div>
@@ -160,7 +168,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
       <div className="bg-[var(--paper)] rounded-[14px] shadow-paper p-6 md:p-8 mb-8">
         <div className="flex flex-wrap justify-between gap-2 text-sm mb-3">
           <span className="font-medium">Certificate progress</span>
-          <span className="text-[var(--ink)]/50">
+          <span className="text-[var(--ink)]/70">
             {points.toLocaleString("en-US")} / {MAX_TIER_POINTS.toLocaleString("en-US")} pts
           </span>
         </div>
@@ -192,7 +200,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
             <div
               key={seg.name}
               style={{ flex: seg.span }}
-              className={`flex items-center justify-end gap-1.5 text-xs ${seg.reached ? "text-[var(--ink)] font-medium" : "text-[var(--ink)]/45"}`}
+              className={`flex items-center justify-end gap-1.5 text-xs ${seg.reached ? "text-[var(--ink)] font-medium" : "text-[var(--ink)]/70"}`}
             >
               <span className="w-2 h-2 rounded-full shrink-0" style={{ background: seg.color, opacity: seg.reached ? 1 : 0.45 }} />
               <span className="truncate">
@@ -203,7 +211,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
           ))}
         </div>
 
-        <p className="text-xs text-[var(--ink)]/55 mt-4">
+        <p className="text-xs text-[var(--ink)]/70 mt-4">
           {upNext
             ? `${(upNext.at - points).toLocaleString("en-US")} points to ${upNext.name}${upNext.bonus ? `, which comes with ${upNext.bonus} bonus points.` : "."}`
             : "You've reached Gold, the top tier."}
@@ -220,12 +228,12 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                 <span aria-hidden="true" className="text-xl">{a.type === "certificate" ? "🎓" : "🎁"}</span>
                 <div className="min-w-0 flex-1">
                   <div className="font-medium">{a.type === "certificate" ? "Certificate of Appreciation" : a.reward}</div>
-                  <div className="text-xs text-[var(--ink)]/55">
+                  <div className="text-xs text-[var(--ink)]/70">
                     {a.type === "certificate" ? `${a.certId} · ` : ""}
                     {new Date(a.issuedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
                     {a.type === "certificate" && a.reward ? ` · Reward: ${a.reward}` : ""}
                   </div>
-                  {a.note && <p className="text-sm italic text-[var(--ink)]/60 mt-1">&quot;{a.note}&quot;</p>}
+                  {a.note && <p className="text-sm italic text-[var(--ink)]/70 mt-1">&quot;{a.note}&quot;</p>}
                 </div>
                 {a.type === "certificate" && (
                   <button className="btn btn-primary btn-sm" onClick={() => downloadPdf(a)} disabled={pdfBusy === a._id}>
@@ -259,25 +267,25 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
 
         {tab === "progress" && (
           <div className="p-6 space-y-3">
-            {pending.length === 0 && <p className="text-sm text-[var(--ink)]/50">Nothing pending — head to the board to pick up a quest.</p>}
+            {pending.length === 0 && <p className="text-sm text-[var(--ink)]/70">Nothing pending — head to the board to pick up a quest.</p>}
             {pending.map((s) => renderCard(s, false))}
           </div>
         )}
 
         {tab === "done" && (
           <div className="p-6 space-y-4">
-            {completed.length === 0 && <p className="text-sm text-[var(--ink)]/50">No approved quests yet.</p>}
+            {completed.length === 0 && <p className="text-sm text-[var(--ink)]/70">No approved quests yet.</p>}
             {completed.map((s) => (
               <div key={s._id} className="p-4 rounded-xl border border-black/5">
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <div className="font-medium">{s.quest?.title}</div>
-                    <div className="text-xs text-[var(--ink)]/50">{s.quest?.course} · +{s.awardedPoints} pts</div>
+                    <div className="text-xs text-[var(--ink)]/70">{s.quest?.course} · +{s.awardedPoints} pts</div>
                   </div>
                   <span className="badge bg-emerald-50 text-emerald-700">Approved</span>
                 </div>
                 {s.professorFeedback && (
-                  <p className="text-sm text-[var(--ink)]/60 italic mb-1">&quot;{s.professorFeedback}&quot;</p>
+                  <p className="text-sm text-[var(--ink)]/70 italic mb-1">&quot;{s.professorFeedback}&quot;</p>
                 )}
                 {s.professorFeedbackFileUrl && (
                   <a href={`/api/submissions/${s._id}/download?which=feedback`} className="text-xs underline text-[var(--indigo)] block mb-3">
@@ -301,12 +309,12 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
         {tab === "archive" && (
           <div className="p-6 space-y-3">
             {archived.length === 0 ? (
-              <p className="text-sm text-[var(--ink)]/50">
+              <p className="text-sm text-[var(--ink)]/70">
                 Nothing archived. Use the ✕ on a quest in progress to tuck it away here.
               </p>
             ) : (
               <>
-                <p className="text-xs text-[var(--ink)]/45">
+                <p className="text-xs text-[var(--ink)]/70">
                   Archived quests are hidden from In progress. Your professor can still see them, and a new revision request or approval brings a quest back.
                 </p>
                 {archived.map((s) => renderCard(s, true))}

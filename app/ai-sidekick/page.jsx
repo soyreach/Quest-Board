@@ -62,36 +62,36 @@ export default function SidekickPage() {
   return (
     <div className="max-w-7xl mx-auto px-6 pt-10 pb-16 page-enter">
       <h1 className="font-display font-bold text-3xl mb-1">AI sidekick</h1>
-      <p className="text-[var(--ink)]/55 text-sm mb-6">
+      <p className="text-[var(--ink)]/70 text-sm mb-6">
         Socratic help only — it asks questions and points you in a direction, it never hands you the answer.
       </p>
 
       {status !== "authenticated" && (
-        <p className="text-sm mb-6 text-[var(--ink)]/60">Sign in to start a session with the sidekick.</p>
+        <p className="text-sm mb-6 text-[var(--ink)]/70">Sign in to start a session with the sidekick.</p>
       )}
 
       <div
-        className="grid md:grid-cols-[260px_1fr] gap-6 bg-[var(--paper)] rounded-3xl shadow-[0_10px_40px_-20px_rgba(20,18,43,0.4)] overflow-hidden"
+        className="grid md:grid-cols-[260px_1fr] gap-6 bg-[var(--paper)] rounded-[14px] shadow-paper overflow-hidden"
         style={{ minHeight: 560 }}
       >
         <div className="border-r border-black/5 p-4 bg-[var(--lavender)] flex flex-col">
           <button className="btn btn-primary btn-sm w-full mb-4" onClick={newThread} disabled={status !== "authenticated"}>
             + New chat
           </button>
-          <div className="text-xs font-semibold text-[var(--ink)]/45 mb-2 px-1">Chat history</div>
+          <div className="text-xs font-semibold text-[var(--ink)]/70 mb-2 px-1">Chat history</div>
           <div className="space-y-1 overflow-y-auto flex-1">
             {threads.map((t) => (
               <button
                 key={t._id}
                 onClick={() => selectThread(t._id)}
                 className={`w-full text-left px-3 py-2 rounded-xl text-sm flex items-center justify-between gap-2 group transition ${
-                  t._id === activeId ? "bg-[var(--paper)] shadow-sm font-medium" : "text-[var(--ink)]/60 hover:bg-white/70"
+                  t._id === activeId ? "bg-[var(--paper)] shadow-sm font-medium" : "text-[var(--ink)]/70 hover:bg-white/70"
                 }`}
               >
                 <span className="truncate">{t.title || "New chat"}</span>
                 <span
                   onClick={(e) => deleteThread(t._id, e)}
-                  className="opacity-0 group-hover:opacity-100 text-[var(--ink)]/30 hover:text-red-500 text-xs shrink-0"
+                  className="opacity-0 group-hover:opacity-100 text-[var(--ink)]/70 hover:text-red-500 text-xs shrink-0"
                 >
                   ✕
                 </span>
@@ -103,7 +103,7 @@ export default function SidekickPage() {
         {status === "authenticated" && activeId && !loadingThread ? (
           <ChatPanel key={activeId} threadId={activeId} initialMessages={activeMessages} />
         ) : (
-          <div className="flex-1 flex items-center justify-center text-sm text-[var(--ink)]/40">
+          <div className="flex-1 flex items-center justify-center text-sm text-[var(--ink)]/70">
             {status === "authenticated" ? "Loading…" : ""}
           </div>
         )}
@@ -148,7 +148,7 @@ function ChatPanel({ threadId, initialMessages }) {
       <div className="flex-1 p-6 space-y-4 overflow-y-auto" style={{ maxHeight: 460 }}>
         {messages.length === 0 && (
           <div className="msg-bubble flex justify-start">
-            <div className="max-w-[75%] rounded-2xl px-4 py-3 text-sm bg-[var(--lavender)]">
+            <div className="max-w-[75%] rounded-xl px-4 py-3 text-sm bg-[var(--lavender)]">
               Hey! Tell me what you&apos;re stuck on and I&apos;ll help you think it through — I won&apos;t just hand you the answer.
             </div>
           </div>
@@ -156,7 +156,7 @@ function ChatPanel({ threadId, initialMessages }) {
         {messages.map((m) => (
           <div key={m.id} className={`msg-bubble flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
-              className="max-w-[75%] rounded-2xl px-4 py-3 text-sm"
+              className="max-w-[75%] rounded-xl px-4 py-3 text-sm"
               style={m.role === "user" ? { background: "var(--indigo)", color: "#fff" } : { background: "var(--lavender)" }}
             >
               {m.role === "user" ? (
@@ -171,7 +171,7 @@ function ChatPanel({ threadId, initialMessages }) {
         ))}
         {isLoading && (
           <div className="msg-bubble flex justify-start">
-            <div className="rounded-2xl px-4 py-3 bg-[var(--lavender)]">
+            <div className="rounded-xl px-4 py-3 bg-[var(--lavender)]">
               <span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" />
             </div>
           </div>

@@ -40,14 +40,14 @@ export default function FilterDropdown({ label, value, options, onChange, width 
         <svg
           viewBox="0 0 20 20"
           fill="none"
-          className={`w-3.5 h-3.5 shrink-0 text-[var(--ink)]/50 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`w-3.5 h-3.5 shrink-0 text-[var(--ink)]/70 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         >
           <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 
       <div
-        className={`absolute left-0 top-[calc(100%+8px)] min-w-full w-max max-w-xs bg-[var(--paper)] rounded-2xl border border-black/10 shadow-xl p-1.5 z-30 origin-top transition-all duration-150 ease-out ${
+        className={`absolute left-0 top-[calc(100%+8px)] min-w-full w-max max-w-xs bg-[var(--paper)] rounded-xl border border-black/10 shadow-xl p-1.5 z-30 origin-top transition-all duration-150 ease-out ${
           open ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-1 pointer-events-none"
         }`}
       >

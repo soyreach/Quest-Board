@@ -297,6 +297,14 @@ Surfaces follow the approved mock: flat cream paper with a hairline border
 the student hub.
 Transitions and animations were not changed.
 
+**Design rules (polish pass).** Secondary text is never lighter than 70% ink on
+paper; the contrast of every page was measured and no text style falls below 4.5:1.
+Status chips use a color *and* a word (`.badge-ok`, `.badge-warn`, `.badge-info`,
+`.badge-quiet` in `globals.css`). Page sections share one width (`max-w-6xl`), buttons
+are at least 40px tall, and phones get a menu button in the nav (below the `md`
+breakpoint the link row is hidden). Small gold text uses `.text-gold-ink`, since the
+plain gold is too light to read on cream.
+
 ## Roles, sign-in and certificates
 
 **Sign-in.** Sign up asks for a full name (printed on certificates), a username,

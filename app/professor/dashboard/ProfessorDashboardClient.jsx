@@ -240,24 +240,24 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="font-display font-bold text-3xl mb-1">Faculty hub</h1>
-          <p className="text-[var(--ink)]/55 text-sm">Post quests, manage what&apos;s live, and review incoming submissions.</p>
+          <p className="text-[var(--ink)]/70 text-sm">Post quests, manage what&apos;s live, and review incoming submissions.</p>
         </div>
         <button className="btn btn-primary" onClick={() => { setPinError(""); setCreatorOpen(true); }}>+ Add new quest</button>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5 mb-10">
-        <div className="bg-[var(--paper)] rounded-3xl p-5 shadow-[0_10px_30px_-20px_rgba(20,18,43,0.4)]">
-          <div className="text-xs text-[var(--ink)]/45 mb-1">Posted this term</div>
+        <div className="bg-[var(--paper)] rounded-[14px] p-5 shadow-paper">
+          <div className="text-xs text-[var(--ink)]/70 mb-1">Posted this term</div>
           <div className="font-display font-bold text-2xl">{quests.length} quests</div>
         </div>
-        <div className="bg-[var(--paper)] rounded-3xl p-5 shadow-[0_10px_30px_-20px_rgba(20,18,43,0.4)]">
-          <div className="text-xs text-[var(--ink)]/45 mb-1">Pending review</div>
+        <div className="bg-[var(--paper)] rounded-[14px] p-5 shadow-paper">
+          <div className="text-xs text-[var(--ink)]/70 mb-1">Pending review</div>
           <div className="font-display font-bold text-2xl">{queue.length} submissions</div>
         </div>
-        <div className="bg-[var(--paper)] rounded-3xl p-5 shadow-[0_10px_30px_-20px_rgba(20,18,43,0.4)]">
-          <div className="text-xs text-[var(--ink)]/45 mb-1">Points awarded</div>
+        <div className="bg-[var(--paper)] rounded-[14px] p-5 shadow-paper">
+          <div className="text-xs text-[var(--ink)]/70 mb-1">Bounty points on offer</div>
           <div className="font-display font-bold text-2xl">
-            {quests.reduce((sum, q) => sum + (q.bountyPoints || 0), 0)} pts posted
+            {quests.reduce((sum, q) => sum + (q.bountyPoints || 0), 0)} pts
           </div>
         </div>
       </div>
@@ -291,30 +291,30 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
             quests;
 
           if (quests.length === 0) {
-            return <p className="text-sm text-[var(--ink)]/50">No quests posted yet — add your first one above.</p>;
+            return <p className="text-sm text-[var(--ink)]/70">No quests posted yet — add your first one above.</p>;
           }
           if (filteredQuests.length === 0) {
-            return <p className="text-sm text-[var(--ink)]/50">No {questFilter} quests right now.</p>;
+            return <p className="text-sm text-[var(--ink)]/70">No {questFilter} quests right now.</p>;
           }
 
           return filteredQuests.map((q) => {
             const expired = isExpired(q);
             return (
-              <div key={q._id} className="p-5 rounded-2xl bg-[var(--paper)] border border-black/5">
+              <div key={q._id} className="p-5 rounded-[14px] bg-[var(--paper)] shadow-paper">
                 <div className="flex justify-between mb-2">
-                  <span className="badge bg-[var(--indigo-soft)] text-[var(--violet-2)]">{q.status}</span>
-                  <span className="text-xs font-semibold" style={{ color: "var(--gold)" }}>+{q.bountyPoints} pts</span>
+                  <span className={`badge ${expired ? "badge-quiet" : "badge-ok"}`}>{expired ? "Expired" : q.status}</span>
+                  <span className="text-sm font-bold text-gold-ink">+{q.bountyPoints} pts</span>
                 </div>
                 <div className="font-medium mb-1">{q.title}</div>
-                <div className="text-xs text-[var(--ink)]/50 mb-3">{q.course}</div>
+                <div className="text-xs text-[var(--ink)]/70 mb-3">{q.course}</div>
                 <div className="flex items-center justify-between">
                   <div className="text-xs">
                     {q.deadline ? (
-                      <span className={expired ? "text-red-600 font-medium" : "text-[var(--ink)]/50"}>
+                      <span className={expired ? "text-red-600 font-medium" : "text-[var(--ink)]/70"}>
                         {expired ? "Expired " : "Due "}{formatDeadline(q.deadline)}
                       </span>
                     ) : (
-                      <span className="text-[var(--ink)]/35">No deadline</span>
+                      <span className="text-[var(--ink)]/70">No deadline</span>
                     )}
                   </div>
                   <button className="btn btn-sm btn-outline" onClick={() => openEdit(q)}>Edit</button>
@@ -332,9 +332,9 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
 
       <h2 className="font-display font-semibold text-xl mb-4">Submission review queue</h2>
       <div className="space-y-4">
-        {queue.length === 0 && <p className="text-sm text-[var(--ink)]/50">Nothing waiting on you right now.</p>}
+        {queue.length === 0 && <p className="text-sm text-[var(--ink)]/70">Nothing waiting on you right now.</p>}
         {queue.map((s) => (
-          <div key={s._id} className="bg-[var(--paper)] rounded-2xl p-5 border border-black/5">
+          <div key={s._id} className="bg-[var(--paper)] rounded-xl p-5 border border-black/5">
             <div className="flex flex-wrap justify-between gap-3 mb-3">
               <div>
                 <div className="font-medium">{s.student?.name} — {s.quest?.title}</div>
@@ -343,10 +343,10 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                     📄 {s.fileName || "Download submitted file"}
                   </a>
                 ) : (
-                  <div className="text-xs text-[var(--ink)]/50">{s.repoLink}</div>
+                  <div className="text-xs text-[var(--ink)]/70">{s.repoLink}</div>
                 )}
               </div>
-              <span className="badge bg-amber-50 text-amber-700">{s.status.replace("_", " ")}</span>
+              <span className="badge badge-info shrink-0 self-start">{s.status === "AI_PreChecked" ? "AI pre-checked" : "Awaiting review"}</span>
             </div>
 
             {s.aiPreCheck ? (
@@ -354,27 +354,27 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                 <div className="mb-4">
                   <div className="grid sm:grid-cols-3 gap-3 mb-3 text-sm">
                     <div className="bg-[var(--lavender)] rounded-xl p-3">
-                      <div className="text-xs text-[var(--ink)]/45 mb-1">Preliminary score</div>
+                      <div className="text-xs text-[var(--ink)]/70 mb-1">Preliminary score</div>
                       <div className="font-semibold">{s.aiPreCheck.preliminaryScore} / 100</div>
                     </div>
                     <div className="bg-[var(--lavender)] rounded-xl p-3">
-                      <div className="text-xs text-[var(--ink)]/45 mb-1">Similarity (computed)</div>
+                      <div className="text-xs text-[var(--ink)]/70 mb-1">Similarity (computed)</div>
                       <div className="font-semibold">
                         {s.aiPreCheck.similarityScore}%
                         {s.aiPreCheck.similarityMatchStudentName && (
-                          <span className="font-normal text-[var(--ink)]/50"> · vs {s.aiPreCheck.similarityMatchStudentName}</span>
+                          <span className="font-normal text-[var(--ink)]/70"> · vs {s.aiPreCheck.similarityMatchStudentName}</span>
                         )}
                       </div>
                     </div>
                     <div className="bg-[var(--lavender)] rounded-xl p-3">
-                      <div className="text-xs text-[var(--ink)]/45 mb-1">Flags</div>
+                      <div className="text-xs text-[var(--ink)]/70 mb-1">Flags</div>
                       <div className="font-semibold">{s.aiPreCheck.flagCount}</div>
                     </div>
                   </div>
 
                   {s.aiPreCheck.feedbackSummary && (
                     <div className="bg-[var(--paper)] border border-black/5 rounded-xl p-3 text-sm mb-3">
-                      <div className="text-xs font-semibold text-[var(--ink)]/45 mb-1">AI feedback</div>
+                      <div className="text-xs font-semibold text-[var(--ink)]/70 mb-1">AI feedback</div>
                       {s.aiPreCheck.feedbackSummary}
                     </div>
                   )}
@@ -406,7 +406,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
               onChange={(e) => setReviewNotes((n) => ({ ...n, [s._id]: e.target.value }))}
               className="w-full rounded-xl border border-black/10 p-3 text-sm mb-2"
             />
-            <label className="flex items-center gap-2 text-xs text-[var(--ink)]/55 mb-4 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-[var(--ink)]/70 mb-4 cursor-pointer">
               <span className="btn btn-sm btn-outline">Attach a file back</span>
               <input
                 type="file"
@@ -433,13 +433,13 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
         {creatorOpen && (
           <div className="w-[92vw] max-w-xl plain-modal p-8 max-h-[86vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display font-bold text-xl mb-1">Add a new quest</h3>
-            <p className="text-sm text-[var(--ink)]/55 mb-5">Paste a syllabus excerpt and let AI draft the quest — then edit before you pin it.</p>
+            <p className="text-sm text-[var(--ink)]/70 mb-5">Paste a syllabus excerpt and let AI draft the quest — then edit before you pin it.</p>
             <textarea
               rows={4}
               value={syllabusText}
               onChange={(e) => setSyllabusText(e.target.value)}
               placeholder="Paste raw syllabus text here…"
-              className="w-full rounded-2xl border border-black/10 p-4 text-sm mb-3"
+              className="w-full rounded-xl border border-black/10 p-4 text-sm mb-3"
             />
             {convertError && <p className="text-xs text-red-600 mb-2">{convertError}</p>}
             <button className="btn btn-sm btn-outline mb-6" onClick={convertSyllabus} disabled={converting || syllabusText.trim().length < 20}>
@@ -452,17 +452,17 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                 <textarea rows={3} className="w-full rounded-xl border border-black/10 p-3 text-sm" value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label htmlFor="quest-difficulty" className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Difficulty</label>
+                    <label htmlFor="quest-difficulty" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Difficulty</label>
                     <select id="quest-difficulty" className="w-full rounded-xl border border-black/10 p-3 text-sm" value={draft.difficulty} onChange={(e) => setDraft({ ...draft, difficulty: e.target.value })}>
                       <option>Apprentice</option><option>Journeyman</option><option>Master</option>
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="quest-hours" className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Estimated hours</label>
+                    <label htmlFor="quest-hours" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Estimated hours</label>
                     <input id="quest-hours" className="w-full rounded-xl border border-black/10 p-3 text-sm" value={draft.estimatedHours} onChange={(e) => setDraft({ ...draft, estimatedHours: Number(e.target.value) })} />
                   </div>
                   <div>
-                    <label htmlFor="quest-bounty" className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Bounty points</label>
+                    <label htmlFor="quest-bounty" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Bounty points</label>
                     <input
                       id="quest-bounty"
                       type="number"
@@ -476,7 +476,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                     />
                   </div>
                 </div>
-                <p className="text-xs text-[var(--ink)]/45 -mt-1">
+                <p className="text-xs text-[var(--ink)]/70 -mt-1">
                   You decide the bounty ({MIN_BOUNTY_POINTS}–{MAX_BOUNTY_POINTS} points).
                   {suggestedPoints != null && Number(draft.bountyPoints) !== suggestedPoints && (
                     <>
@@ -489,7 +489,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                 </p>
 
                 <div>
-                  <label className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Deadline (optional)</label>
+                  <label className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Deadline (optional)</label>
                   <input
                     type="date"
                     value={newDeadline}
@@ -498,7 +498,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Attach a rubric file or image (optional)</label>
+                  <label className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Attach a rubric file or image (optional)</label>
                   <input
                     type="file"
                     onChange={(e) => setNewAttachment(e.target.files?.[0] || null)}
@@ -522,9 +522,9 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
         {editingQuest && (
           <div className="w-[92vw] max-w-md plain-modal p-8" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display font-bold text-xl mb-1">Edit &quot;{editingQuest.title}&quot;</h3>
-            <p className="text-sm text-[var(--ink)]/55 mb-5">Update the bounty or deadline, or swap the attached file.</p>
+            <p className="text-sm text-[var(--ink)]/70 mb-5">Update the bounty or deadline, or swap the attached file.</p>
 
-            <label htmlFor="edit-bounty" className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Bounty points</label>
+            <label htmlFor="edit-bounty" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Bounty points</label>
             <input
               id="edit-bounty"
               type="number"
@@ -536,20 +536,20 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
               onChange={(e) => setEditPoints(e.target.value)}
               className="w-full rounded-xl border border-black/10 p-3 text-sm mb-1"
             />
-            <p className="text-xs text-[var(--ink)]/40 mb-4">
+            <p className="text-xs text-[var(--ink)]/70 mb-4">
               Applies to approvals from now on. Students already approved keep the points they earned.
             </p>
 
-            <label className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Deadline</label>
+            <label className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Deadline</label>
             <input
               type="date"
               value={editDeadline}
               onChange={(e) => setEditDeadline(e.target.value)}
               className="w-full rounded-xl border border-black/10 p-3 text-sm mb-3"
             />
-            <p className="text-xs text-[var(--ink)]/40 mb-4">Leave blank and save to remove the deadline entirely.</p>
+            <p className="text-xs text-[var(--ink)]/70 mb-4">Leave blank and save to remove the deadline entirely.</p>
 
-            <label className="text-xs font-medium text-[var(--ink)]/60 mb-1 block">Replace attached file</label>
+            <label className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Replace attached file</label>
             <input
               type="file"
               onChange={(e) => setEditAttachment(e.target.files?.[0] || null)}

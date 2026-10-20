@@ -263,16 +263,16 @@ export default function NotificationBell({ closeSignal, onOpen }) {
               type="button"
               onClick={markAllRead}
               disabled={unread === 0}
-              className="text-xs underline text-[var(--ink)]/55 hover:text-[var(--ink)] disabled:no-underline disabled:opacity-40 disabled:cursor-default"
+              className="text-xs underline text-[var(--ink)]/70 hover:text-[var(--ink)] disabled:no-underline disabled:opacity-40 disabled:cursor-default"
             >
               Mark all as read
             </button>
           </div>
 
           {!loaded ? (
-            <div className="px-4 py-10 text-center text-sm text-[var(--ink)]/45">Loading…</div>
+            <div className="px-4 py-10 text-center text-sm text-[var(--ink)]/70">Loading…</div>
           ) : items.length === 0 ? (
-            <div className="px-4 py-10 text-center text-sm text-[var(--ink)]/50">
+            <div className="px-4 py-10 text-center text-sm text-[var(--ink)]/70">
               You&apos;re all caught up.{" "}
               {role === "Professor"
                 ? "New submissions to review will show up here."
@@ -306,15 +306,15 @@ export default function NotificationBell({ closeSignal, onOpen }) {
                           />
                         )}
                       </span>
-                      <span className="block text-xs text-[var(--ink)]/65 mt-0.5 break-words">{n.message}</span>
-                      <span className="block text-[11px] text-[var(--ink)]/40 mt-1">{timeAgo(n.createdAt)}</span>
+                      <span className="block text-xs text-[var(--ink)]/75 mt-0.5 break-words">{n.message}</span>
+                      <span className="block text-[11px] text-[var(--ink)]/70 mt-1">{timeAgo(n.createdAt)}</span>
                     </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => dismiss(n)}
                     aria-label="Dismiss notification"
-                    className="self-start text-xs px-1 text-[var(--ink)]/30 hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100"
+                    className="self-start text-xs px-1 text-[var(--ink)]/70 hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100"
                   >
                     ✕
                   </button>
@@ -340,7 +340,7 @@ export default function NotificationBell({ closeSignal, onOpen }) {
               <button
                 type="button"
                 onClick={clearAll}
-                className="text-xs text-[var(--ink)]/50 hover:text-red-500"
+                className="text-xs text-[var(--ink)]/70 hover:text-red-500"
               >
                 Clear all
               </button>

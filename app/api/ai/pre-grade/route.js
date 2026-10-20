@@ -97,7 +97,7 @@ export async function POST(req) {
   try {
     const { text } = await generateText({
       // model: anthropic("claude-3-5-sonnet-20241022"), // swap back once you have Anthropic credits
-      model: google("models/gemini-3.6-flash"), // swap to "models/gemini-1.5-pro" for stronger reasoning once budget allows
+      model: google("models/gemini-3.5-flash-lite"), // swap to "models/gemini-1.5-pro" for stronger reasoning once budget allows
       system: SYSTEM_PROMPT,
       prompt: `Quest: ${quest.title}\n\nRubric:\n${rubricText}\n\nSubmitted file (${submission.fileName}):\n${submittedText.slice(0, 8000)}`,
       temperature: 0.2,

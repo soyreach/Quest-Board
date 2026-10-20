@@ -101,7 +101,7 @@ export default function BoardClient({ initialQuests }) {
       <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
           <h1 className="font-display font-bold text-3xl mb-1">The quest board</h1>
-          <p className="text-[var(--ink)]/55 text-sm">Pinned by your professors this term. Click a quest to read the full brief.</p>
+          <p className="text-[var(--ink)]/70 text-sm">Pinned by your professors this term. Click a quest to read the full brief.</p>
         </div>
       </div>
 
@@ -144,14 +144,14 @@ export default function BoardClient({ initialQuests }) {
             { value: 300, label: "300+ pts" },
           ]}
         />
-        <span className="ml-auto self-center text-xs text-[var(--ink)]/45">
+        <span className="ml-auto self-center text-xs text-[var(--ink)]/70">
           {loading ? "Loading…" : `${quests.length} quest${quests.length === 1 ? "" : "s"} pinned`}
         </span>
       </div>
 
       <div className="corkboard p-8 md:p-10 min-h-[560px] grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
         {!loading && quests.length === 0 && (
-          <p className="text-[var(--ink)]/60 col-span-full text-center py-20">No quests match those filters yet.</p>
+          <p className="text-[var(--ink)]/70 col-span-full text-center py-20">No quests match those filters yet.</p>
         )}
         {quests.map((q, i) => (
           <div
@@ -163,15 +163,15 @@ export default function BoardClient({ initialQuests }) {
             <div className="pin" />
             <div className="stamp">{q.bountyPoints}<small>PTS</small></div>
             <span className={`tape ${TAPE[q.difficulty] || "tape-j"}`}>{q.difficulty}</span>
-            <h3 className="font-display font-semibold text-lg leading-snug mt-2 mb-0.5 pr-16" style={{ color: "var(--ink)" }}>{q.title}</h3>
-            <div className="text-xs mb-2 text-[var(--wood)]/80">{q.course}</div>
-            <p className="text-xs leading-relaxed" style={{ color: "#5c4a2c" }}>
-              {(q.description || "").slice(0, 90)}…
+            <h3 className="font-display font-semibold text-lg leading-snug mt-2 mb-0.5 pr-16 line-clamp-2" style={{ color: "var(--ink)" }}>{q.title}</h3>
+            <div className="text-xs mb-2 text-[var(--wood)] line-clamp-1">{q.course}</div>
+            <p className="text-[13px] leading-relaxed line-clamp-3" style={{ color: "#4f3f27" }}>
+              {q.description}
             </p>
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-[10px] font-medium" style={{ color: "#8a6a2e" }}>{q.skillTag}</span>
+            <div className="mt-auto pt-4 flex items-center justify-between gap-3">
+              <span className="text-xs font-medium truncate" style={{ color: "#6f5420" }}>{q.skillTag}</span>
               {q.deadline && (
-                <span className="text-[10px] font-medium" style={{ color: "#7a3a3a" }}>Due {formatDeadline(q.deadline)}</span>
+                <span className="text-xs font-semibold shrink-0" style={{ color: "#8A2F2F" }}>Due {formatDeadline(q.deadline)}</span>
               )}
             </div>
           </div>
