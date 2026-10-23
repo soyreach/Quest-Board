@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Award, Download, Gift } from "lucide-react";
 import { MAX_TIER_POINTS, currentTier } from "@/lib/tiers";
 import { downloadCertificatePdf } from "@/lib/certificatePdf";
 
@@ -107,52 +108,81 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
 
   function studentRow(s, canIssue) {
     const tier = currentTier(s.bountyPoints);
+    const toGold = Math.min(100, Math.round((s.bountyPoints / MAX_TIER_POINTS) * 100));
     return (
-      <div key={s._id} className="flex flex-wrap items-center gap-3 p-4 rounded-xl bg-[var(--lavender)]">
-        <div className="min-w-0 flex-1">
-          <div className="font-medium">{s.name}</div>
-          <div className="text-xs text-[var(--ink)]/70">@{s.username} · {s.email}</div>
+      <div key={s._id} className="row grid gap-3 md:grid-cols-[minmax(0,1fr)_110px_150px_auto] md:items-center">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="w-9 h-9 rounded-full bg-[var(--lavender)] grid place-content-center text-sm font-bold shrink-0" aria-hidden="true">
+            {(s.name || "?")[0].toUpperCase()}
+          </span>
+          <div className="min-w-0">
+            <div className="font-medium truncate">{s.name}</div>
+            <div className="meta truncate">@{s.username} · {s.email}</div>
+          </div>
         </div>
-        <span className="badge bg-[var(--paper)] border border-[color:var(--line)]">
-          {tier && <span className="w-2 h-2 rounded-full" style={{ background: tier.color }} />}
-          {tier ? tier.name : "No tier yet"}
-        </span>
-        <div className="font-display font-bold text-lg w-20 text-right">{s.bountyPoints.toLocaleString("en-US")}</div>
-        <div className="flex gap-2">
+        <div>
+          <span className="badge badge-quiet">
+            {tier && <span className="w-2 h-2 rounded-full" style={{ background: tier.color }} aria-hidden="true" />}
+            {tier ? tier.name : "No tier yet"}
+          </span>
+        </div>
+        <div>
+          <div className="text-sm font-semibold tabular-nums">
+            {s.bountyPoints.toLocaleString("en-US")} <span className="font-normal text-[var(--ink)]/60">pts</span>
+          </div>
+          {!canIssue && (
+            <div className="h-1.5 rounded-full bg-black/[0.08] mt-1.5 overflow-hidden" aria-label={`${toGold}% of the way to Gold`}>
+              <div className="h-full rounded-full" style={{ width: `${toGold}%`, background: tier?.color || "var(--wood)" }} />
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2 md:justify-end">
           {canIssue && (
             <button className="btn btn-primary btn-sm" onClick={() => openDialog("certificate", s)}>
-              Issue certificate
+              <Award size={14} aria-hidden="true" /> Issue certificate
             </button>
           )}
-          <button className="btn btn-light btn-sm border border-[color:var(--line)]" onClick={() => openDialog("reward", s)}>
-            Send reward
+          <button className="btn btn-outline btn-sm" onClick={() => openDialog("reward", s)}>
+            <Gift size={14} aria-hidden="true" /> Send reward
           </button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="max-w-5xl mx-auto px-6 pt-10 pb-24 page-enter">
-      <div className="mb-8">
-        <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">School committee</span>
-        <h1 className="font-display font-semibold text-3xl mt-1 mb-1">Certificates &amp; rewards</h1>
-        <p className="text-[var(--ink)]/70 max-w-xl">
-          Students who reach Gold ({MAX_TIER_POINTS.toLocaleString("en-US")} points) are ready for a certificate. You can also send
-          a reward to any student. They are notified straight away, with the certificate attached.
-        </p>
-      </div>
+  const columnHeads = (
+    <div className="hidden md:grid grid-cols-[minmax(0,1fr)_110px_150px_auto] gap-3 px-5 py-2.5 bg-[var(--lavender)] text-[0.7rem] font-bold tracking-wider uppercase text-[var(--ink)]/60">
+      <span>Student</span><span>Tier</span><span>Points</span><span className="text-right">Actions</span>
+    </div>
+  );
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+  const TABS = [
+    ["ready", "Ready to issue", ready.length],
+    ["earning", "Still earning", earning.length],
+    ["history", "History", awards.length],
+  ];
+
+  return (
+    <div className="max-w-6xl mx-auto px-6 pt-10 pb-24 page-enter">
+      <header className="mb-6">
+        <div className="hub-eyebrow">Committee hub</div>
+        <h1 className="font-display font-bold text-3xl leading-tight">Certificates &amp; rewards</h1>
+        <p className="meta mt-1 max-w-xl">
+          Students who reach Gold ({MAX_TIER_POINTS.toLocaleString("en-US")} points) are ready for a certificate. You can send
+          a reward to anyone. Students are notified straight away.
+        </p>
+      </header>
+
+      <div className="stat-strip grid-cols-4 mb-8">
         {[
           [ready.length, "Ready to issue"],
           [earning.length, "Still earning"],
           [certCount, "Certificates issued"],
           [rewardCount, "Rewards sent"],
         ].map(([n, label]) => (
-          <div key={label} className="bg-[var(--paper)] rounded-xl shadow-paper px-4 py-3">
-            <div className="font-display font-bold text-2xl">{n}</div>
-            <div className="text-xs text-[var(--ink)]/70">{label}</div>
+          <div key={label}>
+            <div className="stat-label">{label}</div>
+            <div className="stat-value">{n}</div>
           </div>
         ))}
       </div>
@@ -164,57 +194,73 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
       )}
 
       <div className="folder-tabs" role="tablist">
-        {[
-          ["ready", `Ready to issue (${ready.length})`],
-          ["earning", `Still earning (${earning.length})`],
-          ["history", `History (${awards.length})`],
-        ].map(([key, label]) => (
-          <button key={key} role="tab" aria-selected={tab === key} className={`folder-tab ${tab === key ? "active" : ""}`} onClick={() => setTab(key)}>
-            {label}
+        {TABS.map(([key, label, count]) => (
+          <button
+            key={key}
+            role="tab"
+            aria-selected={tab === key}
+            className={`folder-tab inline-flex items-center gap-2 ${tab === key ? "active" : ""}`}
+            onClick={() => setTab(key)}
+          >
+            {label} <span className="count-pill">{count}</span>
           </button>
         ))}
       </div>
 
-      <div className="folder-panel p-6 space-y-3">
+      <div className="folder-panel">
         {tab === "ready" &&
           (ready.length === 0 ? (
-            <p className="text-sm text-[var(--ink)]/70">No one is waiting. Students appear here the moment they reach Gold.</p>
+            <p className="empty-note">No one is waiting. Students appear here the moment they reach Gold.</p>
           ) : (
-            ready.map((s) => studentRow(s, true))
+            <>
+              {columnHeads}
+              <div className="row-list">{ready.map((s) => studentRow(s, true))}</div>
+            </>
           ))}
 
         {tab === "earning" &&
           (earning.length === 0 ? (
-            <p className="text-sm text-[var(--ink)]/70">Every student has reached Gold.</p>
+            <p className="empty-note">Every student has reached Gold.</p>
           ) : (
-            earning.map((s) => studentRow(s, false))
+            <>
+              {columnHeads}
+              <div className="row-list">{earning.map((s) => studentRow(s, false))}</div>
+            </>
           ))}
 
         {tab === "history" &&
           (awards.length === 0 ? (
-            <p className="text-sm text-[var(--ink)]/70">Nothing issued yet.</p>
+            <p className="empty-note">Nothing issued yet.</p>
           ) : (
-            awards.map((a) => (
-              <div key={a._id} className="flex flex-wrap items-center gap-3 p-4 rounded-xl bg-[var(--lavender)]">
-                <span aria-hidden="true" className="text-xl">{a.type === "certificate" ? "🎓" : "🎁"}</span>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium">
-                    {a.type === "certificate" ? `Certificate · ${a.recipientName}` : `${a.reward} · ${nameById[a.student] || "Student"}`}
+            <div className="row-list">
+              {awards.map((a) => {
+                const Icon = a.type === "certificate" ? Award : Gift;
+                return (
+                  <div key={a._id} className="row flex flex-wrap items-start gap-3">
+                    <span className="w-9 h-9 rounded-full bg-[var(--lavender)] grid place-content-center shrink-0 text-[var(--wood)]" aria-hidden="true">
+                      <Icon size={16} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium">
+                        {a.type === "certificate" ? `Certificate · ${a.recipientName}` : `${a.reward} · ${nameById[a.student] || "Student"}`}
+                      </div>
+                      <div className="meta">
+                        {a.type === "certificate" ? `${a.certId} · ` : ""}
+                        {formatDate(a.issuedAt)}
+                        {a.type === "certificate" && a.reward ? ` · Reward: ${a.reward}` : ""}
+                      </div>
+                      {a.note && <p className="text-sm italic text-[var(--ink)]/70 mt-1">&ldquo;{a.note}&rdquo;</p>}
+                    </div>
+                    {a.type === "certificate" && (
+                      <button className="quiet-btn" onClick={() => downloadAward(a)} disabled={busyId === a._id}>
+                        <Download size={14} aria-hidden="true" />
+                        {busyId === a._id ? "Preparing…" : "Download PDF"}
+                      </button>
+                    )}
                   </div>
-                  <div className="text-xs text-[var(--ink)]/70">
-                    {a.type === "certificate" ? `${a.certId} · ` : ""}
-                    {formatDate(a.issuedAt)}
-                    {a.type === "certificate" && a.reward ? ` · Reward: ${a.reward}` : ""}
-                  </div>
-                  {a.note && <p className="text-sm italic text-[var(--ink)]/70 mt-1">&quot;{a.note}&quot;</p>}
-                </div>
-                {a.type === "certificate" && (
-                  <button className="btn btn-light btn-sm border border-[color:var(--line)]" onClick={() => downloadAward(a)} disabled={busyId === a._id}>
-                    {busyId === a._id ? "Preparing…" : "Download PDF"}
-                  </button>
-                )}
-              </div>
-            ))
+                );
+              })}
+            </div>
           ))}
       </div>
 
@@ -237,7 +283,7 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
                   onChange={(e) => setRecipientName(e.target.value)}
                   maxLength={80}
                   required
-                  className="w-full rounded-xl border border-black/10 p-3 text-sm mb-1"
+                  className="field mb-1"
                 />
                 <p className="text-xs text-[var(--ink)]/70 mb-4">Check the spelling: this is printed exactly as written.</p>
               </>
@@ -254,7 +300,7 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
               maxLength={120}
               required={dialog.mode === "reward"}
               placeholder="e.g. Campus bookstore voucher"
-              className="w-full rounded-xl border border-black/10 p-3 text-sm mb-4"
+              className="field mb-4"
             />
             <datalist id="reward-ideas">
               {REWARD_IDEAS.map((r) => <option key={r} value={r} />)}
@@ -267,7 +313,7 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
               value={note}
               onChange={(e) => setNote(e.target.value)}
               maxLength={500}
-              className="w-full rounded-xl border border-black/10 p-3 text-sm mb-1"
+              className="field mb-1"
             />
 
             {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
