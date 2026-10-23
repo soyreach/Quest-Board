@@ -1,15 +1,29 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { CalendarClock, Clock, FileText, Paperclip, RotateCcw, Upload, X } from "lucide-react";
 import FilterDropdown from "@/components/FilterDropdown";
 
 const TAPE = { Apprentice: "tape-a", Journeyman: "tape-j", Master: "tape-m" };
+const EMPTY_FILTERS = { course: "", skillTag: "", difficulty: "", minPoints: 0 };
 
 function formatDeadline(deadline) {
   if (!deadline) return null;
   const d = new Date(deadline);
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+// Whole days from now until the deadline (negative once it has passed).
+function daysLeft(deadline) {
+  if (!deadline) return null;
+  return Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000);
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export default function BoardClient({ initialQuests }) {
@@ -22,7 +36,7 @@ export default function BoardClient({ initialQuests }) {
   // (pick one course, and every other course disappears from the list).
   const [allQuestsForFilters] = useState(initialQuests);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ course: "", skillTag: "", difficulty: "", minPoints: 0 });
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [openQuest, setOpenQuest] = useState(null);
   const [dissolvingIds, setDissolvingIds] = useState([]);
   const [file, setFile] = useState(null);
@@ -57,8 +71,25 @@ export default function BoardClient({ initialQuests }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
+  // Escape closes the quest brief.
+  useEffect(() => {
+    if (!openQuest) return;
+    function onKey(e) {
+      if (e.key === "Escape") setOpenQuest(null);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [openQuest]);
+
   const courses = useMemo(() => [...new Set(allQuestsForFilters.map((q) => q.course))], [allQuestsForFilters]);
   const skills = useMemo(() => [...new Set(allQuestsForFilters.map((q) => q.skillTag))], [allQuestsForFilters]);
+  const activeFilters = [filters.course, filters.skillTag, filters.difficulty, filters.minPoints].filter(Boolean).length;
+
+  function openBrief(q) {
+    setOpenQuest(q);
+    setSubmitError("");
+    setFile(null);
+  }
 
   async function handleSubmitQuest(questId) {
     if (!file) {
@@ -96,162 +127,253 @@ export default function BoardClient({ initialQuests }) {
     if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0]);
   }
 
+  const openDays = daysLeft(openQuest?.deadline);
+
   return (
     <div className="max-w-7xl mx-auto px-6 pt-10 pb-24 page-enter">
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
+      <header className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-display font-bold text-3xl mb-1">The quest board</h1>
-          <p className="text-[var(--ink)]/70 text-sm">Pinned by your professors this term. Click a quest to read the full brief.</p>
+          <div className="hub-eyebrow">Pinned this term</div>
+          <h1 className="font-display font-bold text-3xl leading-tight">The quest board</h1>
+          <p className="meta mt-1">Real briefs from your professors. Open a quest to read the full brief and turn in your work.</p>
         </div>
-      </div>
+      </header>
 
-      <div className="flex flex-wrap items-center gap-3 mb-6 bg-[var(--paper)] rounded-xl p-4 shadow-paper">
-        <FilterDropdown
-          width="220px"
-          label="All courses"
-          value={filters.course}
-          onChange={(v) => setFilters((f) => ({ ...f, course: v }))}
-          options={[{ value: "", label: "All courses" }, ...courses.map((c) => ({ value: c, label: c }))]}
-        />
-        <FilterDropdown
-          width="200px"
-          label="All skill tags"
-          value={filters.skillTag}
-          onChange={(v) => setFilters((f) => ({ ...f, skillTag: v }))}
-          options={[{ value: "", label: "All skill tags" }, ...skills.map((s) => ({ value: s, label: s }))]}
-        />
-        <FilterDropdown
-          width="170px"
-          label="Any difficulty"
-          value={filters.difficulty}
-          onChange={(v) => setFilters((f) => ({ ...f, difficulty: v }))}
-          options={[
-            { value: "", label: "Any difficulty" },
-            { value: "Apprentice", label: "Apprentice" },
-            { value: "Journeyman", label: "Journeyman" },
-            { value: "Master", label: "Master" },
-          ]}
-        />
-        <FilterDropdown
-          width="150px"
-          label="Any bounty"
-          value={filters.minPoints}
-          onChange={(v) => setFilters((f) => ({ ...f, minPoints: parseInt(v, 10) }))}
-          options={[
-            { value: 0, label: "Any bounty" },
-            { value: 100, label: "100+ pts" },
-            { value: 200, label: "200+ pts" },
-            { value: 300, label: "300+ pts" },
-          ]}
-        />
-        <span className="ml-auto self-center text-xs text-[var(--ink)]/70">
+      <div className="filter-bar mb-8">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <FilterDropdown
+            width="220px"
+            label="All courses"
+            value={filters.course}
+            onChange={(v) => setFilters((f) => ({ ...f, course: v }))}
+            options={[{ value: "", label: "All courses" }, ...courses.map((c) => ({ value: c, label: c }))]}
+          />
+          <FilterDropdown
+            width="200px"
+            label="All skill tags"
+            value={filters.skillTag}
+            onChange={(v) => setFilters((f) => ({ ...f, skillTag: v }))}
+            options={[{ value: "", label: "All skill tags" }, ...skills.map((s) => ({ value: s, label: s }))]}
+          />
+          <FilterDropdown
+            width="170px"
+            label="Any difficulty"
+            value={filters.difficulty}
+            onChange={(v) => setFilters((f) => ({ ...f, difficulty: v }))}
+            options={[
+              { value: "", label: "Any difficulty" },
+              { value: "Apprentice", label: "Apprentice" },
+              { value: "Journeyman", label: "Journeyman" },
+              { value: "Master", label: "Master" },
+            ]}
+          />
+          <FilterDropdown
+            width="150px"
+            label="Any bounty"
+            value={filters.minPoints}
+            onChange={(v) => setFilters((f) => ({ ...f, minPoints: parseInt(v, 10) }))}
+            options={[
+              { value: 0, label: "Any bounty" },
+              { value: 100, label: "100+ pts" },
+              { value: 200, label: "200+ pts" },
+              { value: 300, label: "300+ pts" },
+            ]}
+          />
+          {activeFilters > 0 && (
+            <button type="button" className="quiet-btn" onClick={() => setFilters(EMPTY_FILTERS)}>
+              <RotateCcw size={14} aria-hidden="true" /> Clear filters
+            </button>
+          )}
+        </div>
+        <span className="meta tabular-nums shrink-0" role="status">
           {loading ? "Loading…" : `${quests.length} quest${quests.length === 1 ? "" : "s"} pinned`}
         </span>
       </div>
 
-      <div className="corkboard p-8 md:p-10 min-h-[560px] grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
+      <div
+        className={`corkboard p-6 sm:p-8 md:p-10 min-h-[560px] grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 content-start transition-opacity duration-200 ${loading ? "opacity-60" : ""}`}
+        aria-busy={loading}
+      >
         {!loading && quests.length === 0 && (
-          <p className="text-[var(--ink)]/70 col-span-full text-center py-20">No quests match those filters yet.</p>
-        )}
-        {quests.map((q, i) => (
-          <div
-            key={q._id}
-            className={`quest-card p-5 ${dissolvingIds.includes(q._id) ? "dissolving" : ""}`}
-            style={{ transform: `rotate(${((i % 5) - 2) * 0.7}deg)` }}
-            onClick={() => { setOpenQuest(q); setSubmitError(""); setFile(null); }}
-          >
-            <div className="pin" />
-            <div className="stamp">{q.bountyPoints}<small>PTS</small></div>
-            <span className={`tape ${TAPE[q.difficulty] || "tape-j"}`}>{q.difficulty}</span>
-            <h3 className="font-display font-semibold text-lg leading-snug mt-2 mb-0.5 pr-16 line-clamp-2" style={{ color: "var(--ink)" }}>{q.title}</h3>
-            <div className="text-xs mb-2 text-[var(--wood)] line-clamp-1">{q.course}</div>
-            <p className="text-[13px] leading-relaxed line-clamp-3" style={{ color: "#4f3f27" }}>
-              {q.description}
-            </p>
-            <div className="mt-auto pt-4 flex items-center justify-between gap-3">
-              <span className="text-xs font-medium truncate" style={{ color: "#6f5420" }}>{q.skillTag}</span>
-              {q.deadline && (
-                <span className="text-xs font-semibold shrink-0" style={{ color: "#8A2F2F" }}>Due {formatDeadline(q.deadline)}</span>
+          <div className="col-span-full flex justify-center py-12">
+            <div className="paper-note max-w-sm text-center" style={{ transform: "rotate(-1deg)" }}>
+              <div className="pin" />
+              <h2 className="font-display font-semibold text-lg mb-1">Nothing pinned here</h2>
+              <p className="meta mb-4">No quests match those filters yet. Try widening the search.</p>
+              {activeFilters > 0 && (
+                <button type="button" className="btn btn-outline btn-sm" onClick={() => setFilters(EMPTY_FILTERS)}>
+                  Clear filters
+                </button>
               )}
             </div>
           </div>
-        ))}
+        )}
+        {quests.map((q, i) => {
+          const days = daysLeft(q.deadline);
+          const dueSoon = days !== null && days <= 3;
+          return (
+            <article
+              key={q._id}
+              role="button"
+              tabIndex={0}
+              aria-label={`${q.title}, ${q.bountyPoints} points. Open brief`}
+              className={`quest-card p-5 ${dissolvingIds.includes(q._id) ? "dissolving" : ""}`}
+              style={{ transform: `rotate(${((i % 5) - 2) * 0.7}deg)` }}
+              onClick={() => openBrief(q)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  openBrief(q);
+                }
+              }}
+            >
+              <div className="pin" />
+              <div className="stamp">{q.bountyPoints}<small>PTS</small></div>
+              <span className={`tape ${TAPE[q.difficulty] || "tape-j"}`}>{q.difficulty}</span>
+              <h3 className="font-display font-semibold text-lg leading-snug mt-2.5 mb-0.5 pr-16 line-clamp-2">{q.title}</h3>
+              <div className="text-xs font-medium mb-2.5 text-[var(--wood)] line-clamp-1">{q.course}</div>
+              <p className="text-[13px] leading-relaxed line-clamp-3 text-[var(--ink)]/80 mb-4">{q.description}</p>
+              <div className="mt-auto pt-3 flex items-center justify-between gap-3 border-t border-dashed border-[color:var(--line)]">
+                <span className="skill-chip truncate">{q.skillTag}</span>
+                {q.deadline && (
+                  <span className={`inline-flex items-center gap-1 text-xs font-semibold shrink-0 ${dueSoon ? "text-[var(--stamp)]" : "text-[var(--muted)]"}`}>
+                    <CalendarClock size={13} aria-hidden="true" />
+                    {dueSoon && days >= 0 ? (days === 0 ? "Due today" : `${days} day${days === 1 ? "" : "s"} left`) : `Due ${formatDeadline(q.deadline)}`}
+                  </span>
+                )}
+              </div>
+            </article>
+          );
+        })}
       </div>
 
       <div className={`modal-backdrop ${openQuest ? "open" : ""}`} onClick={() => setOpenQuest(null)}>
         {openQuest && (
           <div
-            className="parchment-modal w-[92vw] max-w-2xl max-h-[86vh] overflow-y-auto p-8 md:p-10"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="quest-brief-title"
+            className="parchment-modal w-[92vw] max-w-2xl max-h-[88vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-start mb-4">
-              <span className="badge" style={{ background: "rgba(201,154,60,0.2)", color: "#7a5a1e" }}>
-                {openQuest.course} · {openQuest.difficulty} · {openQuest.estimatedHours}h est.
-              </span>
-              <button onClick={() => setOpenQuest(null)} className="text-2xl leading-none text-[#5c4a2c]/60 hover:text-[#5c4a2c]">&times;</button>
-            </div>
-            <h2 className="font-display font-semibold text-3xl mb-3" style={{ color: "var(--ink)" }}>{openQuest.title}</h2>
-            <p className="text-sm mb-5" style={{ color: "#4a3a20" }}>{openQuest.industryContext || openQuest.description}</p>
-
-            {(openQuest.deadline || openQuest.attachmentUrl) && (
-              <div className="flex flex-wrap gap-3 mb-5 text-xs" style={{ color: "#6b5a3a" }}>
-                {openQuest.deadline && <span>📅 Due {formatDeadline(openQuest.deadline)}</span>}
-                {openQuest.attachmentUrl && (
-                  <a href={openQuest.attachmentUrl} target="_blank" rel="noreferrer" className="underline">
-                    📎 {openQuest.attachmentName || "View attached file"}
-                  </a>
-                )}
-              </div>
-            )}
-
-            <h4 className="font-semibold text-sm mb-2" style={{ color: "#3a2c14" }}>Rubric</h4>
-            <div className="space-y-1 mb-6 text-sm">
-              {(openQuest.rubric || []).map((r) => (
-                <div key={r.criterion} className="flex justify-between border-b border-black/10 py-1">
-                  <span>{r.criterion}</span><span className="font-medium">{r.weightPoints}%</span>
+            <div className="p-6 sm:p-8 pb-0 sm:pb-0">
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <div className="flex flex-wrap items-center gap-2 min-w-0">
+                  <span className={`tape ${TAPE[openQuest.difficulty] || "tape-j"}`}>{openQuest.difficulty}</span>
+                  <span className="meta truncate">{openQuest.course}</span>
                 </div>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setOpenQuest(null)}
+                  aria-label="Close brief"
+                  className="quiet-btn -mr-2 -mt-1 shrink-0"
+                >
+                  <X size={18} aria-hidden="true" />
+                </button>
+              </div>
+              <h2 id="quest-brief-title" className="font-display font-semibold text-2xl sm:text-3xl leading-tight mb-5">
+                {openQuest.title}
+              </h2>
+
+              <div className="grid grid-cols-3 gap-2 mb-6">
+                <div className="metric">
+                  <div className="metric-label">Bounty</div>
+                  <div className="metric-value text-[var(--stamp)]">{openQuest.bountyPoints} pts</div>
+                </div>
+                <div className="metric">
+                  <div className="metric-label">Estimated</div>
+                  <div className="metric-value inline-flex items-center gap-1">
+                    <Clock size={13} aria-hidden="true" className="text-[var(--muted)]" />
+                    {openQuest.estimatedHours ? `${openQuest.estimatedHours}h` : "—"}
+                  </div>
+                </div>
+                <div className="metric">
+                  <div className="metric-label">Due</div>
+                  <div className={`metric-value text-sm sm:text-base ${openDays !== null && openDays <= 3 ? "text-[var(--stamp)]" : ""}`}>
+                    {openQuest.deadline ? formatDeadline(openQuest.deadline) : "No deadline"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="creator-label">The brief</div>
+              <p className="text-sm leading-relaxed mb-4 whitespace-pre-line">{openQuest.industryContext || openQuest.description}</p>
+              {openQuest.attachmentUrl && (
+                <a href={openQuest.attachmentUrl} target="_blank" rel="noreferrer" className="file-link mb-6">
+                  <Paperclip size={13} aria-hidden="true" /> {openQuest.attachmentName || "View attached file"}
+                </a>
+              )}
+
+              {(openQuest.rubric || []).length > 0 && (
+                <div className="mt-2 mb-6">
+                  <div className="creator-label">How it&apos;s graded</div>
+                  <ul className="space-y-2.5">
+                    {openQuest.rubric.map((r) => (
+                      <li key={r.criterion}>
+                        <div className="flex justify-between gap-3 text-sm mb-1">
+                          <span>{r.criterion}</span>
+                          <span className="font-semibold tabular-nums">{r.weightPoints}%</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-black/[0.07] overflow-hidden">
+                          <div className="h-full rounded-full bg-[var(--wood)]" style={{ width: `${Math.min(100, r.weightPoints)}%` }} />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             {session?.user?.role === "Student" ? (
-              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.4)" }}>
-                <h4 className="font-semibold text-sm mb-3" style={{ color: "#3a2c14" }}>Turn in your work</h4>
+              <div className="turn-in p-6 sm:p-8">
+                <h3 className="font-display font-semibold text-base mb-3">Turn in your work</h3>
 
-                <div
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                  onDragLeave={() => setDragOver(false)}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                  className="rounded-xl border-2 border-dashed p-6 text-center cursor-pointer mb-3 transition"
-                  style={{
-                    borderColor: dragOver ? "var(--indigo)" : "rgba(0,0,0,0.15)",
-                    background: dragOver ? "rgba(117,96,75,0.1)" : "rgba(255,255,255,0.5)",
-                  }}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    className="hidden"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  />
-                  {file ? (
-                    <p className="text-sm font-medium" style={{ color: "#3a2c14" }}>📄 {file.name}</p>
-                  ) : (
-                    <>
-                      <p className="text-sm font-medium mb-1" style={{ color: "#3a2c14" }}>Drag a file here, or</p>
-                      <p className="text-sm underline" style={{ color: "var(--indigo)" }}>Choose a file to upload</p>
-                    </>
-                  )}
-                </div>
+                {file ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-[color:var(--line)] bg-[#FFFEF0] px-4 py-3 mb-3">
+                    <span className="w-9 h-9 rounded-lg bg-[var(--lavender)] grid place-content-center text-[var(--wood)] shrink-0" aria-hidden="true">
+                      <FileText size={17} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium truncate">{file.name}</div>
+                      <div className="meta">{formatSize(file.size)}</div>
+                    </div>
+                    <button type="button" className="quiet-btn shrink-0" onClick={() => setFile(null)}>
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`dropzone w-full mb-3 ${dragOver ? "over" : ""}`}
+                  >
+                    <span className="w-10 h-10 rounded-full bg-[var(--lavender)] grid place-content-center text-[var(--wood)] mx-auto mb-2" aria-hidden="true">
+                      <Upload size={18} />
+                    </span>
+                    <span className="block text-sm font-medium">Drag a file here, or <span className="underline underline-offset-2 text-[var(--wood)]">choose one</span></span>
+                  </button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                />
 
-                {submitError && <p className="text-xs text-red-600 mb-2">{submitError}</p>}
+                {submitError && <p className="text-xs text-red-600 mb-2" role="alert">{submitError}</p>}
                 <button className="btn btn-primary w-full" disabled={submitting} onClick={() => handleSubmitQuest(openQuest._id)}>
                   {submitting ? "Submitting…" : "Turn in quest"}
                 </button>
               </div>
             ) : (
-              <p className="text-xs" style={{ color: "#6b5a3a" }}>
-                Sign in as a student to submit work for this quest.
+              <p className="turn-in meta px-6 sm:px-8 py-5">
+                {session ? "Only students can turn in work for a quest." : (
+                  <>
+                    <Link href="/login" className="underline text-[var(--ink)]">Sign in as a student</Link> to submit work for this quest.
+                  </>
+                )}
               </p>
             )}
           </div>

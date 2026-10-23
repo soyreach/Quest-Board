@@ -22,6 +22,18 @@ const AIPreCheckSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// One entry per turn-in or review, oldest first. See lib/submissionHistory.js.
+const HistoryEventSchema = new mongoose.Schema({
+  type: { type: String, enum: ["submitted", "resubmitted", "revision_requested", "approved"], required: true },
+  at: { type: Date, default: Date.now },
+  fileUrl: { type: String, default: null }, // the student's file at that turn-in
+  fileName: { type: String, default: null },
+  note: { type: String, default: "" }, // the professor's comment on a review
+  feedbackFileUrl: { type: String, default: null },
+  feedbackFileName: { type: String, default: null },
+  points: { type: Number, default: 0 },
+});
+
 const SubmissionSchema = new mongoose.Schema(
   {
     quest: { type: mongoose.Schema.Types.ObjectId, ref: "Quest", required: true },
@@ -48,6 +60,8 @@ const SubmissionSchema = new mongoose.Schema(
     professorFeedback: { type: String },
     professorFeedbackFileUrl: { type: String, default: null }, // e.g. an annotated file sent back
     professorFeedbackFileName: { type: String, default: null },
+
+    history: { type: [HistoryEventSchema], default: [] },
   },
   { timestamps: true }
 );

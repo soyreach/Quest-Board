@@ -8,6 +8,7 @@ import Quest from "@/models/Quest";
 import User from "@/models/User";
 import { notifyUser } from "@/lib/notify";
 import { saveUploadedFile } from "@/lib/upload";
+import { submittedEvent } from "@/lib/submissionHistory";
 import { getMySubmissions, getReviewQueue } from "@/lib/queries";
 
 export async function GET(req) {
@@ -71,6 +72,7 @@ export async function POST(req) {
     fileUrl: saved.url,
     fileName: saved.name,
     status: "Submitted",
+    history: [submittedEvent("submitted", saved)],
   });
 
   const student = await User.findById(session.user.id).select("name").lean();

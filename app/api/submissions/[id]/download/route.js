@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readFile } from "fs/promises";
+import mongoose from "mongoose";
 import path from "path";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -35,8 +36,22 @@ export async function GET(req, { params }) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const fileUrl = which === "feedback" ? submission.professorFeedbackFileUrl : submission.fileUrl;
-  const fileName = which === "feedback" ? submission.professorFeedbackFileName : submission.fileName;
+  // ?entry=<history id> fetches the file from an earlier turn-in or review
+  // instead of the one currently on the submission.
+  const entryId = searchParams.get("entry");
+  const entry = entryId && mongoose.isValidObjectId(entryId) ? submission.history?.id(entryId) : null;
+  if (entryId && !entry) {
+    return NextResponse.json({ error: "No such history entry" }, { status: 404 });
+  }
+
+  let fileUrl, fileName;
+  if (entry) {
+    fileUrl = which === "feedback" ? entry.feedbackFileUrl : entry.fileUrl;
+    fileName = which === "feedback" ? entry.feedbackFileName : entry.fileName;
+  } else {
+    fileUrl = which === "feedback" ? submission.professorFeedbackFileUrl : submission.fileUrl;
+    fileName = which === "feedback" ? submission.professorFeedbackFileName : submission.fileName;
+  }
   if (!fileUrl) {
     return NextResponse.json({ error: "No file on this submission" }, { status: 404 });
   }

@@ -8,6 +8,7 @@ import User from "@/models/User";
 import { saveUploadedFile } from "@/lib/upload";
 import { notifyUser } from "@/lib/notify";
 import { awardTierRewards } from "@/lib/tierRewards";
+import { reviewEvent, seedHistory } from "@/lib/submissionHistory";
 
 export async function PATCH(req, { params }) {
   const session = await getServerSession(authOptions);
@@ -53,6 +54,12 @@ export async function PATCH(req, { params }) {
       return NextResponse.json({ error: err.message }, { status: 400 });
     }
   }
+
+  // Snapshot the pre-history state first, then log this review.
+  submission.history.push(
+    ...seedHistory(submission),
+    reviewEvent(action, { note: String(professorFeedback).trim(), feedbackFile: feedbackFileInfo, points: quest.bountyPoints })
+  );
 
   submission.professorFeedback = professorFeedback;
   if (feedbackFileInfo) {

@@ -8,6 +8,7 @@ import Quest from "@/models/Quest";
 import User from "@/models/User";
 import { notifyUser } from "@/lib/notify";
 import { saveUploadedFile } from "@/lib/upload";
+import { seedHistory, submittedEvent } from "@/lib/submissionHistory";
 
 // Statuses where the student can still swap in a new file.
 const OPEN_STATUSES = ["Needs_Revision", "Submitted", "AI_PreChecked"];
@@ -74,6 +75,7 @@ export async function POST(req, { params }) {
         aiPreCheck: null, // it described the old file
         archivedByStudent: false,
       },
+      $push: { history: { $each: [...seedHistory(submission), submittedEvent("resubmitted", saved)] } },
     },
     { new: true }
   );

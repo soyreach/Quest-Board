@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Archive, Award, Check, Copy, Download, FileText, Gift, Paperclip, RotateCcw } from "lucide-react";
+import { Archive, Award, Check, Copy, Download, FileText, Gift, MessageSquareText, Paperclip, RotateCcw, Upload } from "lucide-react";
 import { MAX_TIER_POINTS, barSegments, bonusEarned, currentTier, nextTier } from "@/lib/tiers";
 import { downloadCertificatePdf } from "@/lib/certificatePdf";
 import ResubmitDialog from "@/components/ResubmitDialog";
@@ -10,6 +10,73 @@ import ResubmitDialog from "@/components/ResubmitDialog";
 // Words and colors for each stage, so the status reads at a glance.
 const STATUS_LABEL = { Submitted: "Awaiting review", AI_PreChecked: "Awaiting review", Needs_Revision: "Needs revision" };
 const STATUS_STYLE = { Submitted: "badge-info", AI_PreChecked: "badge-info", Needs_Revision: "badge-warn" };
+
+const EVENT_LABEL = {
+  submitted: "Turned in",
+  resubmitted: "Resubmitted",
+  revision_requested: "Revision requested",
+  approved: "Approved",
+};
+const EVENT_ICON = { submitted: Upload, resubmitted: RotateCcw, revision_requested: MessageSquareText, approved: Check };
+// How many timeline entries a card shows before "Show earlier".
+const TIMELINE_PREVIEW = 3;
+
+function formatWhen(date) {
+  return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+// A submission's timeline. Ones made before history was recorded get a
+// best-effort timeline rebuilt from what the submission shows now.
+function eventsFor(s) {
+  if (s.history?.length) {
+    return s.history.map((h) => ({
+      ...h,
+      key: h._id,
+      fileHref: h.fileUrl ? `/api/submissions/${s._id}/download?entry=${h._id}` : null,
+      feedbackHref: h.feedbackFileUrl ? `/api/submissions/${s._id}/download?entry=${h._id}&which=feedback` : null,
+    }));
+  }
+  const events = [{
+    key: `${s._id}-submitted`,
+    type: "submitted",
+    at: s.createdAt,
+    fileName: s.fileName,
+    fileHref: s.fileUrl ? `/api/submissions/${s._id}/download` : null,
+  }];
+  if (s.status === "Needs_Revision" || s.status === "Professor_Approved") {
+    events.push({
+      key: `${s._id}-review`,
+      type: s.status === "Professor_Approved" ? "approved" : "revision_requested",
+      at: s.updatedAt,
+      note: s.professorFeedback,
+      points: s.awardedPoints,
+      feedbackFileName: s.professorFeedbackFileName,
+      feedbackHref: s.professorFeedbackFileUrl ? `/api/submissions/${s._id}/download?which=feedback` : null,
+    });
+  }
+  return events;
+}
+
+// Turning a quest in from the board more than once creates separate
+// submissions, so gather them per quest: one card, one merged timeline.
+function groupByQuest(submissions) {
+  const byQuest = new Map();
+  for (const s of submissions) {
+    const key = s.quest?._id || s._id;
+    if (!byQuest.has(key)) byQuest.set(key, []);
+    byQuest.get(key).push(s);
+  }
+  return [...byQuest.entries()]
+    .map(([key, list]) => {
+      const newestFirst = [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      // An approval settles the quest; otherwise the latest turn-in is the live one.
+      const current = newestFirst.find((s) => s.status === "Professor_Approved") || newestFirst[0];
+      const events = newestFirst.flatMap(eventsFor).sort((a, b) => new Date(b.at) - new Date(a.at));
+      const attempts = events.filter((e) => e.type === "submitted" || e.type === "resubmitted").length;
+      return { key, quest: current.quest, current, submissions: newestFirst, events, attempts };
+    })
+    .sort((a, b) => new Date(b.events[0]?.at || 0) - new Date(a.events[0]?.at || 0));
+}
 
 export default function StudentDashboardClient({ initialMe, initialSubmissions, initialAwards = [], userName, userEmail }) {
   const [me] = useState(initialMe);
@@ -22,12 +89,14 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
   const [pdfError, setPdfError] = useState("");
   const [resubmitFor, setResubmitFor] = useState(null);
   const [flash, setFlash] = useState("");
+  const [expanded, setExpanded] = useState({});
 
-  // Approved work always lives under Completed. Everything else is either still
+  // Approved quests always live under Completed. Everything else is either still
   // in progress or, if the student tucked it away, in the Archive.
-  const completed = submissions.filter((s) => s.status === "Professor_Approved");
-  const pending = submissions.filter((s) => s.status !== "Professor_Approved" && !s.archivedByStudent);
-  const archived = submissions.filter((s) => s.status !== "Professor_Approved" && s.archivedByStudent);
+  const groups = useMemo(() => groupByQuest(submissions), [submissions]);
+  const completed = groups.filter((g) => g.current.status === "Professor_Approved");
+  const pending = groups.filter((g) => g.current.status !== "Professor_Approved" && !g.current.archivedByStudent);
+  const archived = groups.filter((g) => g.current.status !== "Professor_Approved" && g.current.archivedByStudent);
 
   const points = me?.bountyPoints ?? 0;
   const pct = Math.min(100, Math.round((points / MAX_TIER_POINTS) * 100));
@@ -62,113 +131,162 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
     setTimeout(() => setCopiedId(null), 1400);
   }
 
-  // Moves a submission into or out of the Archive. The list updates right away
-  // and rolls back if the server says no.
-  async function setArchived(id, value) {
+  // Moves a quest into or out of the Archive. Every open submission for it moves
+  // together, so the quest can't end up half archived. The list updates right
+  // away and rolls back if the server says no.
+  async function setArchived(group, value) {
     setArchiveError("");
+    const ids = group.submissions.filter((s) => s.status !== "Professor_Approved").map((s) => s._id);
     const apply = (flag) =>
-      setSubmissions((list) => list.map((s) => (s._id === id ? { ...s, archivedByStudent: flag } : s)));
+      setSubmissions((list) => list.map((s) => (ids.includes(s._id) ? { ...s, archivedByStudent: flag } : s)));
     apply(value);
     try {
-      const res = await fetch(`/api/submissions/${id}/archive`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ archived: value }),
-      });
-      if (!res.ok) {
-        const { error } = await res.json().catch(() => ({}));
-        throw new Error(error || "Could not update this quest. Try again.");
-      }
+      await Promise.all(
+        ids.map(async (id) => {
+          const res = await fetch(`/api/submissions/${id}/archive`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ archived: value }),
+          });
+          if (!res.ok) {
+            const { error } = await res.json().catch(() => ({}));
+            throw new Error(error || "Could not update this quest. Try again.");
+          }
+        })
+      );
     } catch (err) {
       apply(!value);
       setArchiveError(err.message || "Could not update this quest. Try again.");
     }
   }
 
-  function renderCard(s, inArchive) {
+  function renderTimeline(group) {
+    const open = expanded[group.key];
+    const shown = open ? group.events : group.events.slice(0, TIMELINE_PREVIEW);
+    const hidden = group.events.length - shown.length;
+    return (
+      <div className="mt-4">
+        <div className="text-[0.7rem] font-bold tracking-wider uppercase text-[var(--ink)]/60 mb-2">History</div>
+        <ol className="timeline">
+          {shown.map((e, i) => {
+            const Icon = EVENT_ICON[e.type] || Upload;
+            const isReview = e.type === "revision_requested" || e.type === "approved";
+            // The newest revision request is what the student has to act on.
+            const urgent = i === 0 && e.type === "revision_requested" && group.current.status === "Needs_Revision";
+            return (
+              <li key={e.key} className={`timeline-item ${isReview ? "review" : ""} ${e.type === "approved" ? "approved" : ""}`}>
+                <span className="timeline-dot" aria-hidden="true"><Icon size={11} strokeWidth={2.5} /></span>
+                <div className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="text-sm font-semibold">{EVENT_LABEL[e.type]}</span>
+                  {e.type === "approved" && e.points > 0 && (
+                    <span className="text-xs font-bold text-gold-ink tabular-nums">+{e.points}</span>
+                  )}
+                  <span className="meta">{formatWhen(e.at)}</span>
+                </div>
+                {e.fileHref && (
+                  <a href={e.fileHref} className="file-link mt-0.5">
+                    <FileText size={13} aria-hidden="true" /> {e.fileName}
+                  </a>
+                )}
+                {isReview && (e.note || e.feedbackHref) && (
+                  <div className={`timeline-note ${urgent ? "urgent" : ""}`}>
+                    {e.note && <p className="text-sm whitespace-pre-line">{e.note}</p>}
+                    {e.feedbackHref && (
+                      <a href={e.feedbackHref} className="file-link mt-1">
+                        <Paperclip size={13} aria-hidden="true" /> {e.feedbackFileName}
+                      </a>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+        {group.events.length > TIMELINE_PREVIEW && (
+          <button
+            type="button"
+            className="quiet-btn mt-1 -ml-2"
+            aria-expanded={Boolean(open)}
+            onClick={() => setExpanded((x) => ({ ...x, [group.key]: !open }))}
+          >
+            {open ? "Show less" : `Show ${hidden} earlier update${hidden === 1 ? "" : "s"}`}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  function renderHeader(group, badge) {
+    return (
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-medium">{group.quest?.title || "Removed quest"}</div>
+          <div className="meta">
+            {group.quest?.course}
+            {group.attempts > 1 && ` · ${group.attempts} attempts`}
+          </div>
+        </div>
+        {badge}
+      </div>
+    );
+  }
+
+  function renderCard(group, inArchive) {
+    const s = group.current;
     const needsRevision = s.status === "Needs_Revision";
     return (
-      <div key={s._id} className="row">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="font-medium">{s.quest?.title}</div>
-            <div className="meta">{s.quest?.course}</div>
-          </div>
+      <div key={group.key} className="row">
+        {renderHeader(
+          group,
           <span className={`badge shrink-0 ${STATUS_STYLE[s.status] || "badge-quiet"}`}>
             {STATUS_LABEL[s.status] || s.status.replace("_", " ")}
           </span>
-        </div>
-
-        {needsRevision && (s.professorFeedback || s.professorFeedbackFileUrl) && (
-          <div className="mt-3 rounded-[10px] bg-[var(--lavender)] border-l-[3px] border-[color:var(--stamp)] px-3 py-2">
-            <div className="text-[0.7rem] font-bold tracking-wider uppercase text-[var(--ink)]/60 mb-0.5">Professor&apos;s note</div>
-            {s.professorFeedback && <p className="text-sm">{s.professorFeedback}</p>}
-            {s.professorFeedbackFileUrl && (
-              <a href={`/api/submissions/${s._id}/download?which=feedback`} className="file-link mt-1">
-                <Paperclip size={13} aria-hidden="true" /> {s.professorFeedbackFileName}
-              </a>
-            )}
-          </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
-          {s.fileUrl ? (
-            <a href={`/api/submissions/${s._id}/download`} className="file-link">
-              <FileText size={14} aria-hidden="true" /> {s.fileName}
-            </a>
+        {renderTimeline(group)}
+
+        <div className="flex flex-wrap items-center justify-end gap-1 mt-3 pt-3 border-t border-dashed border-[color:var(--line)]">
+          {inArchive ? (
+            <button type="button" onClick={() => setArchived(group, false)} className="quiet-btn">
+              <RotateCcw size={14} aria-hidden="true" /> Restore
+            </button>
           ) : (
-            <span />
-          )}
-          <div className="flex items-center gap-1">
-            {inArchive ? (
-              <button type="button" onClick={() => setArchived(s._id, false)} className="quiet-btn">
-                <RotateCcw size={14} aria-hidden="true" /> Restore
+            <>
+              <button
+                type="button"
+                onClick={() => setArchived(group, true)}
+                aria-label={`Move "${group.quest?.title}" to Archive`}
+                className="quiet-btn"
+              >
+                <Archive size={14} aria-hidden="true" /> Archive
               </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setArchived(s._id, true)}
-                  aria-label={`Move "${s.quest?.title}" to Archive`}
-                  className="quiet-btn"
-                >
-                  <Archive size={14} aria-hidden="true" /> Archive
-                </button>
-                <button
-                  type="button"
-                  className={`btn btn-sm ${needsRevision ? "btn-primary" : "btn-outline"}`}
-                  onClick={() => setResubmitFor(s)}
-                >
-                  Resubmit
-                </button>
-              </>
-            )}
-          </div>
+              <button
+                type="button"
+                className={`btn btn-sm ${needsRevision ? "btn-primary" : "btn-outline"}`}
+                onClick={() => setResubmitFor(s)}
+              >
+                Resubmit
+              </button>
+            </>
+          )}
         </div>
       </div>
     );
   }
 
-  function renderCompleted(s) {
+  function renderCompleted(group) {
+    const s = group.current;
     const bullet = `Completed "${s.quest?.title}" for ${s.quest?.course}, earning ${s.awardedPoints} bounty points on faculty review.`;
     return (
-      <div key={s._id} className="row">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="font-medium">{s.quest?.title}</div>
-            <div className="meta">{s.quest?.course}</div>
-          </div>
+      <div key={group.key} className="row">
+        {renderHeader(
+          group,
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-sm font-bold text-gold-ink tabular-nums">+{s.awardedPoints}</span>
             <span className="badge badge-ok">Approved</span>
           </div>
-        </div>
-        {s.professorFeedback && <p className="text-sm text-[var(--ink)]/75 italic mt-2">&ldquo;{s.professorFeedback}&rdquo;</p>}
-        {s.professorFeedbackFileUrl && (
-          <a href={`/api/submissions/${s._id}/download?which=feedback`} className="file-link mt-1">
-            <Paperclip size={13} aria-hidden="true" /> {s.professorFeedbackFileName}
-          </a>
         )}
+        {renderTimeline(group)}
         <div className="mt-3 rounded-[10px] bg-[var(--lavender)] p-3 flex items-start justify-between gap-3">
           <div>
             <div className="text-[0.7rem] font-bold tracking-wider uppercase text-[var(--ink)]/60 mb-0.5">Line for your CV</div>
@@ -262,7 +380,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                   Nothing in progress. <Link href="/board" className="underline text-[var(--ink)]">Pick a quest from the board</Link>.
                 </p>
               ) : (
-                <div className="row-list">{pending.map((s) => renderCard(s, false))}</div>
+                <div className="row-list">{pending.map((g) => renderCard(g, false))}</div>
               )
             )}
 
@@ -282,7 +400,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                   <p className="row meta">
                     Archived quests are hidden from In progress. Your professor can still see them, and a new revision request or approval brings a quest back.
                   </p>
-                  {archived.map((s) => renderCard(s, true))}
+                  {archived.map((g) => renderCard(g, true))}
                 </div>
               )
             )}
