@@ -6,6 +6,7 @@ import { Archive, Award, Check, Copy, Download, FileText, Gift, MessageSquareTex
 import { MAX_TIER_POINTS, barSegments, bonusEarned, currentTier, nextTier } from "@/lib/tiers";
 import { downloadCertificatePdf } from "@/lib/certificatePdf";
 import ResubmitDialog from "@/components/ResubmitDialog";
+import { filesOf } from "@/lib/submissionFiles";
 
 // Words and colors for each stage, so the status reads at a glance.
 const STATUS_LABEL = { Submitted: "Awaiting review", AI_PreChecked: "Awaiting review", Needs_Revision: "Needs revision" };
@@ -32,7 +33,7 @@ function eventsFor(s) {
     return s.history.map((h) => ({
       ...h,
       key: h._id,
-      fileHref: h.fileUrl ? `/api/submissions/${s._id}/download?entry=${h._id}` : null,
+      files: filesOf(h).map((f, i) => ({ name: f.name, href: `/api/submissions/${s._id}/download?entry=${h._id}&file=${i}` })),
       feedbackHref: h.feedbackFileUrl ? `/api/submissions/${s._id}/download?entry=${h._id}&which=feedback` : null,
     }));
   }
@@ -40,8 +41,7 @@ function eventsFor(s) {
     key: `${s._id}-submitted`,
     type: "submitted",
     at: s.createdAt,
-    fileName: s.fileName,
-    fileHref: s.fileUrl ? `/api/submissions/${s._id}/download` : null,
+    files: filesOf(s).map((f, i) => ({ name: f.name, href: `/api/submissions/${s._id}/download?file=${i}` })),
   }];
   if (s.status === "Needs_Revision" || s.status === "Professor_Approved") {
     events.push({
@@ -183,10 +183,14 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                   )}
                   <span className="meta">{formatWhen(e.at)}</span>
                 </div>
-                {e.fileHref && (
-                  <a href={e.fileHref} className="file-link mt-0.5">
-                    <FileText size={13} aria-hidden="true" /> {e.fileName}
-                  </a>
+                {e.files?.length > 0 && (
+                  <div className="flex flex-wrap gap-x-3 mt-0.5">
+                    {e.files.map((f) => (
+                      <a key={f.href} href={f.href} className="file-link">
+                        <FileText size={13} aria-hidden="true" /> {f.name}
+                      </a>
+                    ))}
+                  </div>
                 )}
                 {isReview && (e.note || e.feedbackHref) && (
                   <div className={`timeline-note ${urgent ? "urgent" : ""}`}>

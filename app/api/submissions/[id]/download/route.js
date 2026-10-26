@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import Submission from "@/models/Submission";
 import Quest from "@/models/Quest";
+import { filesOf } from "@/lib/submissionFiles";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 
@@ -44,13 +45,16 @@ export async function GET(req, { params }) {
     return NextResponse.json({ error: "No such history entry" }, { status: 404 });
   }
 
+  // ?file=<n> picks one of several files the student turned in (default: the first).
+  const source = entry || submission;
   let fileUrl, fileName;
-  if (entry) {
-    fileUrl = which === "feedback" ? entry.feedbackFileUrl : entry.fileUrl;
-    fileName = which === "feedback" ? entry.feedbackFileName : entry.fileName;
+  if (which === "feedback") {
+    fileUrl = entry ? entry.feedbackFileUrl : submission.professorFeedbackFileUrl;
+    fileName = entry ? entry.feedbackFileName : submission.professorFeedbackFileName;
   } else {
-    fileUrl = which === "feedback" ? submission.professorFeedbackFileUrl : submission.fileUrl;
-    fileName = which === "feedback" ? submission.professorFeedbackFileName : submission.fileName;
+    const picked = filesOf(source)[parseInt(searchParams.get("file") || "0", 10)];
+    fileUrl = picked?.url;
+    fileName = picked?.name;
   }
   if (!fileUrl) {
     return NextResponse.json({ error: "No file on this submission" }, { status: 404 });

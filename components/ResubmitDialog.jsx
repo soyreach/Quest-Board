@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { MAX_SUBMISSION_FILES } from "@/lib/constants";
+import { filesOf } from "@/lib/submissionFiles";
 
-// Lets a student swap in a new file for a quest from their hub, so they don't
+// Lets a student swap in new files for a quest from their hub, so they don't
 // have to go back to the board. Same drag-and-drop box as the board's submit form.
 export default function ResubmitDialog({ submission, onClose, onResubmitted }) {
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -13,6 +15,18 @@ export default function ResubmitDialog({ submission, onClose, onResubmitted }) {
   const inputRef = useRef(null);
 
   const needsRevision = submission.status === "Needs_Revision";
+  const currentFiles = filesOf(submission);
+
+  // Adds picked or dropped files, skipping any already in the list.
+  function addFiles(list) {
+    const incoming = Array.from(list || []);
+    if (!incoming.length) return;
+    const key = (f) => `${f.name}-${f.size}-${f.lastModified}`;
+    const seen = new Set(files.map(key));
+    const merged = [...files, ...incoming.filter((f) => !seen.has(key(f)))];
+    setError(merged.length > MAX_SUBMISSION_FILES ? `You can turn in at most ${MAX_SUBMISSION_FILES} files.` : "");
+    setFiles(merged.slice(0, MAX_SUBMISSION_FILES));
+  }
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setShown(true));
@@ -28,15 +42,15 @@ export default function ResubmitDialog({ submission, onClose, onResubmitted }) {
   }, [busy, onClose]);
 
   async function submit() {
-    if (!file) {
-      setError("Choose a file to upload first.");
+    if (!files.length) {
+      setError("Choose at least one file to upload first.");
       return;
     }
     setBusy(true);
     setError("");
     try {
       const form = new FormData();
-      form.append("file", file);
+      for (const f of files) form.append("file", f);
       const res = await fetch(`/api/submissions/${submission._id}/resubmit`, { method: "POST", body: form });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Could not resubmit. Try again.");
@@ -70,39 +84,78 @@ export default function ResubmitDialog({ submission, onClose, onResubmitted }) {
         )}
         {!needsRevision && (
           <p className="text-xs text-[var(--ink)]/70 mb-4">
-            Your professor hasn&apos;t reviewed this yet. A new file replaces the one they will see.
+            Your professor hasn&apos;t reviewed this yet. New files replace the ones they will see.
           </p>
         )}
 
-        {submission.fileName && (
-          <p className="text-xs text-[var(--ink)]/70 mb-2">Current file: {submission.fileName}</p>
+        {currentFiles.length > 0 && (
+          <p className="text-xs text-[var(--ink)]/70 mb-2 break-words">
+            Current file{currentFiles.length === 1 ? "" : "s"}: {currentFiles.map((f) => f.name).join(", ")}
+          </p>
         )}
 
-        <div
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setDragOver(false);
-            if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0]);
+        {files.length > 0 && (
+          <ul className="space-y-1.5 mb-3">
+            {files.map((f) => (
+              <li
+                key={`${f.name}-${f.size}-${f.lastModified}`}
+                className="flex items-center gap-2 rounded-lg border border-[color:var(--line)] bg-white/50 px-3 py-2"
+              >
+                <span className="text-sm font-medium truncate flex-1 min-w-0">📄 {f.name}</span>
+                <button
+                  type="button"
+                  className="quiet-btn shrink-0 text-xs"
+                  aria-label={`Remove ${f.name}`}
+                  onClick={() => {
+                    setFiles((current) => current.filter((x) => x !== f));
+                    setError("");
+                  }}
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {files.length < MAX_SUBMISSION_FILES && (
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              addFiles(e.dataTransfer.files);
+            }}
+            onClick={() => inputRef.current?.click()}
+            className={`rounded-xl border-2 border-dashed ${files.length ? "p-3" : "p-6"} text-center cursor-pointer mb-3 transition`}
+            style={{
+              borderColor: dragOver ? "var(--indigo)" : "rgba(0,0,0,0.15)",
+              background: dragOver ? "rgba(117,96,75,0.1)" : "rgba(255,255,255,0.5)",
+            }}
+          >
+            {files.length ? (
+              <p className="text-sm font-medium">
+                Drag more files here, or <span className="underline" style={{ color: "var(--indigo)" }}>add more</span>
+              </p>
+            ) : (
+              <>
+                <p className="text-sm font-medium mb-1">Drag your new files here, or</p>
+                <p className="text-sm underline" style={{ color: "var(--indigo)" }}>Choose files to upload</p>
+              </>
+            )}
+          </div>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            addFiles(e.target.files);
+            e.target.value = ""; // so picking the same file again after removing it still fires
           }}
-          onClick={() => inputRef.current?.click()}
-          className="rounded-xl border-2 border-dashed p-6 text-center cursor-pointer mb-3 transition"
-          style={{
-            borderColor: dragOver ? "var(--indigo)" : "rgba(0,0,0,0.15)",
-            background: dragOver ? "rgba(117,96,75,0.1)" : "rgba(255,255,255,0.5)",
-          }}
-        >
-          <input ref={inputRef} type="file" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-          {file ? (
-            <p className="text-sm font-medium">📄 {file.name}</p>
-          ) : (
-            <>
-              <p className="text-sm font-medium mb-1">Drag your new file here, or</p>
-              <p className="text-sm underline" style={{ color: "var(--indigo)" }}>Choose a file to upload</p>
-            </>
-          )}
-        </div>
+        />
 
         {error && <p className="text-xs text-red-600 mb-2">{error}</p>}
 

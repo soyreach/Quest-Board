@@ -9,12 +9,13 @@ import User from "@/models/User";
 import { notifyUser } from "@/lib/notify";
 import { saveUploadedFile } from "@/lib/upload";
 import { seedHistory, submittedEvent } from "@/lib/submissionHistory";
+import { MAX_SUBMISSION_FILES } from "@/lib/constants";
 
 // Statuses where the student can still swap in a new file.
 const OPEN_STATUSES = ["Needs_Revision", "Submitted", "AI_PreChecked"];
 
-// POST (multipart form) { file }
-// Lets a student resubmit from their hub: the new file replaces the one on this
+// POST (multipart form) { file, file, ... }
+// Lets a student resubmit from their hub: the new files replace the ones on this
 // submission and it goes back to the professor's review queue. Nothing is
 // duplicated, so the student's list stays tidy.
 export async function POST(req, { params }) {
@@ -24,9 +25,15 @@ export async function POST(req, { params }) {
   }
 
   const formData = await req.formData().catch(() => null);
-  const file = formData?.get("file");
-  if (!file || typeof file.arrayBuffer !== "function") {
-    return NextResponse.json({ error: "Choose a file to upload first." }, { status: 400 });
+  const files = (formData?.getAll("file") || []).filter((f) => f && typeof f.arrayBuffer === "function");
+  if (files.length === 0) {
+    return NextResponse.json({ error: "Choose at least one file to upload first." }, { status: 400 });
+  }
+  if (files.length > MAX_SUBMISSION_FILES) {
+    return NextResponse.json(
+      { error: `You can turn in at most ${MAX_SUBMISSION_FILES} files at once.` },
+      { status: 400 }
+    );
   }
 
   await connectToDatabase();
@@ -52,16 +59,18 @@ export async function POST(req, { params }) {
   const wasRevision = submission.status === "Needs_Revision";
   if (!wasRevision && quest.deadline && new Date(quest.deadline) < new Date()) {
     return NextResponse.json(
-      { error: "The deadline has passed, so you can't replace a file that is waiting for review." },
+      { error: "The deadline has passed, so you can't replace files that are waiting for review." },
       { status: 409 }
     );
   }
 
-  let saved;
-  try {
-    saved = await saveUploadedFile(file);
-  } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+  const saved = [];
+  for (const file of files) {
+    try {
+      saved.push(await saveUploadedFile(file));
+    } catch (err) {
+      return NextResponse.json({ error: `${file.name}: ${err.message}` }, { status: 400 });
+    }
   }
 
   // One conditional update, so an approval that lands at the same moment wins cleanly.
@@ -69,10 +78,11 @@ export async function POST(req, { params }) {
     { _id: submission._id, student: session.user.id, status: { $in: OPEN_STATUSES } },
     {
       $set: {
-        fileUrl: saved.url,
-        fileName: saved.name,
+        fileUrl: saved[0].url,
+        fileName: saved[0].name,
+        files: saved,
         status: "Submitted",
-        aiPreCheck: null, // it described the old file
+        aiPreCheck: null, // it described the old files
         archivedByStudent: false,
       },
       $push: { history: { $each: [...seedHistory(submission), submittedEvent("resubmitted", saved)] } },
@@ -90,10 +100,10 @@ export async function POST(req, { params }) {
   const who = student?.name || session.user.name || "A student";
   await notifyUser(quest.author, {
     type: "submission_received",
-    title: wasRevision ? "Revised work turned in" : "Submission file replaced",
+    title: wasRevision ? "Revised work turned in" : "Submission files replaced",
     message: wasRevision
       ? `${who} resubmitted "${quest.title}" after your revision request.`
-      : `${who} replaced their file for "${quest.title}" before review.`,
+      : `${who} replaced their files for "${quest.title}" before review.`,
     link: "/professor/dashboard",
   });
 

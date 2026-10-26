@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { CalendarDays, FileText, Paperclip, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { MIN_BOUNTY_POINTS, MAX_BOUNTY_POINTS } from "@/lib/constants";
+import { filesOf } from "@/lib/submissionFiles";
 
 // Textarea that grows to fit its content, so long AI-written instructions
 // can be read and edited without scrolling inside a tiny box.
@@ -346,10 +347,14 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                           <span className="badge badge-info shrink-0">{s.status === "AI_PreChecked" ? "AI pre-checked" : "Awaiting review"}</span>
                         </div>
                         <div className="mt-2">
-                          {s.fileUrl ? (
-                            <a href={`/api/submissions/${s._id}/download`} className="file-link">
-                              <FileText size={14} aria-hidden="true" /> {s.fileName || "Download submitted file"}
-                            </a>
+                          {filesOf(s).length > 0 ? (
+                            <div className="flex flex-wrap gap-x-4 gap-y-1">
+                              {filesOf(s).map((f, i) => (
+                                <a key={f.url} href={`/api/submissions/${s._id}/download?file=${i}`} className="file-link">
+                                  <FileText size={14} aria-hidden="true" /> {f.name || "Download submitted file"}
+                                </a>
+                              ))}
+                            </div>
                           ) : (
                             <span className="meta break-all">{s.repoLink}</span>
                           )}
@@ -380,10 +385,23 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                             </div>
                             {s.aiPreCheck.feedbackSummary && (
                               <div className="rounded-[10px] border border-[color:var(--line)] p-3 text-sm">
-                                <div className="metric-label font-semibold mb-0.5">AI feedback</div>
+                                <div className="metric-label font-semibold mb-0.5">
+                                  {s.aiPreCheck.fileFeedback?.length > 1 ? "AI feedback · overall" : "AI feedback"}
+                                </div>
                                 {s.aiPreCheck.feedbackSummary}
                               </div>
                             )}
+                            {/* One comment per file. A single file's comment would only repeat the overall one. */}
+                            {s.aiPreCheck.fileFeedback?.length > 1 &&
+                              s.aiPreCheck.fileFeedback.map((f, i) => (
+                                <div key={i} className="rounded-[10px] border border-[color:var(--line)] p-3 text-sm">
+                                  <div className="metric-label font-semibold mb-0.5 flex items-center gap-1.5 min-w-0">
+                                    <FileText size={12} aria-hidden="true" className="shrink-0" />
+                                    <span className="truncate">File {i + 1} · {f.fileName}</span>
+                                  </div>
+                                  <p className={f.analyzed ? "" : "text-[var(--ink)]/60 italic"}>{f.feedback}</p>
+                                </div>
+                              ))}
                             {s.aiPreCheck.aiLikelihoodScore != null && (
                               <div className="rounded-[10px] bg-amber-50 p-3 text-sm">
                                 <div className="text-xs font-semibold text-amber-800 mb-0.5">
@@ -400,6 +418,12 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                         <button className="btn btn-sm btn-outline mb-4" disabled={busy} onClick={() => preCheck(s._id)}>
                           <Sparkles size={14} aria-hidden="true" />
                           {busy ? "Checking…" : "Run AI pre-check"}
+                        </button>
+                      )}
+                      {s.aiPreCheck && (
+                        <button type="button" className="quiet-btn -mt-2 mb-3" disabled={busy} onClick={() => preCheck(s._id)}>
+                          <Sparkles size={14} aria-hidden="true" />
+                          {busy ? "Checking…" : "Re-run AI pre-check"}
                         </button>
                       )}
 

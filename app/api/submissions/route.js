@@ -10,6 +10,7 @@ import { notifyUser } from "@/lib/notify";
 import { saveUploadedFile } from "@/lib/upload";
 import { submittedEvent } from "@/lib/submissionHistory";
 import { getMySubmissions, getReviewQueue } from "@/lib/queries";
+import { MAX_SUBMISSION_FILES } from "@/lib/constants";
 
 export async function GET(req) {
   const session = await getServerSession(authOptions);
@@ -37,11 +38,17 @@ export async function POST(req) {
 
   const formData = await req.formData();
   const questId = formData.get("questId");
-  const file = formData.get("file");
+  const files = formData.getAll("file").filter((f) => f && typeof f.arrayBuffer === "function");
 
-  if (!questId || !file || typeof file.arrayBuffer !== "function") {
+  if (!questId || files.length === 0) {
     return NextResponse.json(
-      { error: "A questId and a file are required." },
+      { error: "A questId and at least one file are required." },
+      { status: 400 }
+    );
+  }
+  if (files.length > MAX_SUBMISSION_FILES) {
+    return NextResponse.json(
+      { error: `You can turn in at most ${MAX_SUBMISSION_FILES} files at once.` },
       { status: 400 }
     );
   }
@@ -54,11 +61,13 @@ export async function POST(req) {
     return NextResponse.json({ error: "That quest no longer exists." }, { status: 404 });
   }
 
-  let saved;
-  try {
-    saved = await saveUploadedFile(file);
-  } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+  const saved = [];
+  for (const file of files) {
+    try {
+      saved.push(await saveUploadedFile(file));
+    } catch (err) {
+      return NextResponse.json({ error: `${file.name}: ${err.message}` }, { status: 400 });
+    }
   }
 
   // A student turning work in again after a revision request reads differently to the professor.
@@ -69,8 +78,9 @@ export async function POST(req) {
   const submission = await Submission.create({
     quest: questId,
     student: session.user.id,
-    fileUrl: saved.url,
-    fileName: saved.name,
+    fileUrl: saved[0].url,
+    fileName: saved[0].name,
+    files: saved,
     status: "Submitted",
     history: [submittedEvent("submitted", saved)],
   });

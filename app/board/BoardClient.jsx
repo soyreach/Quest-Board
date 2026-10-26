@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { CalendarClock, Clock, FileText, Paperclip, RotateCcw, Upload, X } from "lucide-react";
 import FilterDropdown from "@/components/FilterDropdown";
+import { MAX_SUBMISSION_FILES } from "@/lib/constants";
 
 const TAPE = { Apprentice: "tape-a", Journeyman: "tape-j", Master: "tape-m" };
 const EMPTY_FILTERS = { course: "", skillTag: "", difficulty: "", minPoints: 0 };
@@ -39,7 +40,7 @@ export default function BoardClient({ initialQuests }) {
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [openQuest, setOpenQuest] = useState(null);
   const [dissolvingIds, setDissolvingIds] = useState([]);
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -88,12 +89,23 @@ export default function BoardClient({ initialQuests }) {
   function openBrief(q) {
     setOpenQuest(q);
     setSubmitError("");
-    setFile(null);
+    setFiles([]);
+  }
+
+  // Adds picked or dropped files, skipping any already in the list.
+  function addFiles(list) {
+    const incoming = Array.from(list || []);
+    if (!incoming.length) return;
+    const key = (f) => `${f.name}-${f.size}-${f.lastModified}`;
+    const seen = new Set(files.map(key));
+    const merged = [...files, ...incoming.filter((f) => !seen.has(key(f)))];
+    setSubmitError(merged.length > MAX_SUBMISSION_FILES ? `You can turn in at most ${MAX_SUBMISSION_FILES} files.` : "");
+    setFiles(merged.slice(0, MAX_SUBMISSION_FILES));
   }
 
   async function handleSubmitQuest(questId) {
-    if (!file) {
-      setSubmitError("Choose a file to upload first.");
+    if (!files.length) {
+      setSubmitError("Choose at least one file to upload first.");
       return;
     }
     setSubmitting(true);
@@ -101,7 +113,7 @@ export default function BoardClient({ initialQuests }) {
 
     const form = new FormData();
     form.append("questId", questId);
-    form.append("file", file);
+    for (const f of files) form.append("file", f);
 
     const res = await fetch("/api/submissions", { method: "POST", body: form });
     setSubmitting(false);
@@ -113,7 +125,7 @@ export default function BoardClient({ initialQuests }) {
     }
 
     setOpenQuest(null);
-    setFile(null);
+    setFiles([]);
     setDissolvingIds((ids) => [...ids, questId]);
     setTimeout(() => {
       setQuests((qs) => qs.filter((q) => q._id !== questId));
@@ -124,7 +136,7 @@ export default function BoardClient({ initialQuests }) {
   function handleDrop(e) {
     e.preventDefault();
     setDragOver(false);
-    if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0]);
+    addFiles(e.dataTransfer.files);
   }
 
   const openDays = daysLeft(openQuest?.deadline);
@@ -327,39 +339,61 @@ export default function BoardClient({ initialQuests }) {
               <div className="turn-in p-6 sm:p-8">
                 <h3 className="font-display font-semibold text-base mb-3">Turn in your work</h3>
 
-                {file ? (
-                  <div className="flex items-center gap-3 rounded-xl border border-[color:var(--line)] bg-[#FFFEF0] px-4 py-3 mb-3">
-                    <span className="w-9 h-9 rounded-lg bg-[var(--lavender)] grid place-content-center text-[var(--wood)] shrink-0" aria-hidden="true">
-                      <FileText size={17} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium truncate">{file.name}</div>
-                      <div className="meta">{formatSize(file.size)}</div>
-                    </div>
-                    <button type="button" className="quiet-btn shrink-0" onClick={() => setFile(null)}>
-                      Remove
-                    </button>
-                  </div>
-                ) : (
+                {files.length > 0 && (
+                  <ul className="space-y-2 mb-3">
+                    {files.map((f) => (
+                      <li key={`${f.name}-${f.size}-${f.lastModified}`} className="flex items-center gap-3 rounded-xl border border-[color:var(--line)] bg-[#FFFEF0] px-4 py-3">
+                        <span className="w-9 h-9 rounded-lg bg-[var(--lavender)] grid place-content-center text-[var(--wood)] shrink-0" aria-hidden="true">
+                          <FileText size={17} />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium truncate">{f.name}</div>
+                          <div className="meta">{formatSize(f.size)}</div>
+                        </div>
+                        <button
+                          type="button"
+                          className="quiet-btn shrink-0"
+                          aria-label={`Remove ${f.name}`}
+                          onClick={() => {
+                            setFiles((current) => current.filter((x) => x !== f));
+                            setSubmitError("");
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {files.length < MAX_SUBMISSION_FILES && (
                   <button
                     type="button"
                     onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                     onDragLeave={() => setDragOver(false)}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`dropzone w-full mb-3 ${dragOver ? "over" : ""}`}
+                    className={`dropzone w-full mb-3 ${dragOver ? "over" : ""} ${files.length ? "!py-3" : ""}`}
                   >
-                    <span className="w-10 h-10 rounded-full bg-[var(--lavender)] grid place-content-center text-[var(--wood)] mx-auto mb-2" aria-hidden="true">
-                      <Upload size={18} />
+                    {files.length === 0 && (
+                      <span className="w-10 h-10 rounded-full bg-[var(--lavender)] grid place-content-center text-[var(--wood)] mx-auto mb-2" aria-hidden="true">
+                        <Upload size={18} />
+                      </span>
+                    )}
+                    <span className="block text-sm font-medium">
+                      {files.length ? "Drag more files here, or " : "Drag files here, or "}
+                      <span className="underline underline-offset-2 text-[var(--wood)]">{files.length ? "add more" : "choose them"}</span>
                     </span>
-                    <span className="block text-sm font-medium">Drag a file here, or <span className="underline underline-offset-2 text-[var(--wood)]">choose one</span></span>
                   </button>
                 )}
                 <input
                   ref={fileInputRef}
                   type="file"
+                  multiple
                   className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  onChange={(e) => {
+                    addFiles(e.target.files);
+                    e.target.value = ""; // so picking the same file again after removing it still fires
+                  }}
                 />
 
                 {submitError && <p className="text-xs text-red-600 mb-2" role="alert">{submitError}</p>}
