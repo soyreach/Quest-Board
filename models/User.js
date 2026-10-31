@@ -22,7 +22,8 @@ const UserSchema = new mongoose.Schema(
       enum: ["Student", "Professor", "Committee", "Admin", null],
       default: null,
     },
-    bountyPoints: { type: Number, default: 0 },
+    bountyPoints: { type: Number, default: 0 }, // everything ever earned; never lowered by the shop
+    pointsSpent: { type: Number, default: 0 }, // spent in the exchange shop. See lib/shop.js.
     careerGoals: { type: [String], default: [] }, // e.g. ["Backend Engineer", "Data Analyst"]
     skills: { type: [String], default: [] },
     // Tiers (Bronze/Silver/Gold) whose reward has already been given. See lib/tiers.js.

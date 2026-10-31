@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { CalendarClock, Clock, FileText, Paperclip, RotateCcw, Upload, X } from "lucide-react";
 import FilterDropdown from "@/components/FilterDropdown";
 import { MAX_SUBMISSION_FILES } from "@/lib/constants";
+import { useLingering } from "@/lib/useLingering";
 
 const TAPE = { Apprentice: "tape-a", Journeyman: "tape-j", Master: "tape-m" };
 const EMPTY_FILTERS = { course: "", skillTag: "", difficulty: "", minPoints: 0 };
@@ -38,7 +39,8 @@ export default function BoardClient({ initialQuests }) {
   const [allQuestsForFilters] = useState(initialQuests);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
-  const [openQuest, setOpenQuest] = useState(null);
+  const [selectedQuest, setOpenQuest] = useState(null);
+  const openQuest = useLingering(selectedQuest); // stays on screen while the brief closes
   const [dissolvingIds, setDissolvingIds] = useState([]);
   const [files, setFiles] = useState([]);
   const [dragOver, setDragOver] = useState(false);
@@ -203,7 +205,7 @@ export default function BoardClient({ initialQuests }) {
       </div>
 
       <div
-        className={`corkboard p-6 sm:p-8 md:p-10 min-h-[560px] grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 content-start transition-opacity duration-200 ${loading ? "opacity-60" : ""}`}
+        className={`corkboard cards-in p-6 sm:p-8 md:p-10 min-h-[560px] grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 content-start transition-opacity duration-200 ${loading ? "opacity-60" : ""}`}
         aria-busy={loading}
       >
         {!loading && quests.length === 0 && (
@@ -230,7 +232,7 @@ export default function BoardClient({ initialQuests }) {
               tabIndex={0}
               aria-label={`${q.title}, ${q.bountyPoints} points. Open brief`}
               className={`quest-card p-5 ${dissolvingIds.includes(q._id) ? "dissolving" : ""}`}
-              style={{ transform: `rotate(${((i % 5) - 2) * 0.7}deg)` }}
+              style={{ transform: `rotate(${((i % 5) - 2) * 0.7}deg)`, "--i": Math.min(i, 8) }}
               onClick={() => openBrief(q)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -259,7 +261,7 @@ export default function BoardClient({ initialQuests }) {
         })}
       </div>
 
-      <div className={`modal-backdrop ${openQuest ? "open" : ""}`} onClick={() => setOpenQuest(null)}>
+      <div className={`modal-backdrop ${selectedQuest ? "open" : ""}`} onClick={() => setOpenQuest(null)}>
         {openQuest && (
           <div
             role="dialog"

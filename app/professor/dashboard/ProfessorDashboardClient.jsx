@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { CalendarDays, FileText, Paperclip, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { MIN_BOUNTY_POINTS, MAX_BOUNTY_POINTS } from "@/lib/constants";
 import { filesOf } from "@/lib/submissionFiles";
+import { useLingering } from "@/lib/useLingering";
 
 // Textarea that grows to fit its content, so long AI-written instructions
 // can be read and edited without scrolling inside a tiny box.
@@ -57,6 +58,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
 
   // Create-quest modal state
   const [creatorOpen, setCreatorOpen] = useState(false);
+  const creatorShown = useLingering(creatorOpen); // stays on screen while the dialog closes
   const [syllabusText, setSyllabusText] = useState("");
   const [converting, setConverting] = useState(false);
   const [draft, setDraft] = useState(null);
@@ -67,7 +69,8 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
   const [newAttachment, setNewAttachment] = useState(null);
 
   // Edit-quest modal state
-  const [editingQuest, setEditingQuest] = useState(null);
+  const [questBeingEdited, setEditingQuest] = useState(null);
+  const editingQuest = useLingering(questBeingEdited); // stays on screen while the dialog closes
   const [editDeadline, setEditDeadline] = useState("");
   const [editAttachment, setEditAttachment] = useState(null);
   const [editPoints, setEditPoints] = useState("");
@@ -481,7 +484,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
           ) : filteredQuests.length === 0 ? (
             <p className="empty-note">No {questFilter} quests right now.</p>
           ) : (
-            <div className="row-list">
+            <div className="row-list max-h-[560px] overflow-y-auto overscroll-contain rounded-b-[14px]">
               {filteredQuests.map((q) => {
                 const expired = isExpired(q);
                 return (
@@ -520,7 +523,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
 
       {/* Create quest modal */}
       <div className={`modal-backdrop ${creatorOpen ? "open" : ""}`} onClick={() => setCreatorOpen(false)}>
-        {creatorOpen && (
+        {creatorShown && (
           <div
             className="w-[92vw] max-w-2xl plain-modal max-h-[90vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
@@ -706,7 +709,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
       </div>
 
       {/* Edit quest modal */}
-      <div className={`modal-backdrop ${editingQuest ? "open" : ""}`} onClick={() => setEditingQuest(null)}>
+      <div className={`modal-backdrop ${questBeingEdited ? "open" : ""}`} onClick={() => setEditingQuest(null)}>
         {editingQuest && (
           <div className="w-[92vw] max-w-md plain-modal p-8" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display font-bold text-xl mb-1">Edit &quot;{editingQuest.title}&quot;</h3>

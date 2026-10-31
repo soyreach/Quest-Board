@@ -66,8 +66,8 @@ different backend.
 
 ## Role-based navigation
 
-The nav bar only shows "Student hub" to Students and "Faculty hub" to
-Professors (`components/Nav.jsx`). This is a UI convenience, not the real
+The nav bar's "My hub" link goes to the hub for the signed-in role
+(`components/Nav.jsx`), and the logo goes home. This is a UI convenience, not the real
 security boundary — `middleware.js` is what actually blocks the wrong role
 from loading those pages/routes even if someone types the URL directly.
 
@@ -192,7 +192,9 @@ watch it disappear from that student's board.
 
 ## Account switcher
 
-The nav bar has a "Switch account" button next to Sign out. It lists every
+The round initial button in the nav bar opens the account menu: your name,
+@username and a link to your hub, then Switch account and Sign out. Switch
+account opens a list of every
 account you've signed into on this browser and lets you switch with one
 click, no retyping a password.
 
@@ -295,7 +297,15 @@ Surfaces follow the approved mock: flat cream paper with a hairline border
 (`.shadow-paper`, `.paper-note`), quests pinned onto a framed cork bulletin board
 (`.corkboard`) with a bounty stamp and a difficulty tape, and folder-style tabs on
 the student hub.
-Transitions and animations were not changed.
+
+**Motion.** Mostly plain CSS, using the `--ease-out` and `--ease-in-out` curves at the
+top of `app/globals.css`. Pages crossfade with the browser's View Transitions API
+(`components/PageTransitions.jsx`); browsers without it get the `.page-enter` fade.
+Dialogs and menus animate out as well as in because `lib/useLingering.js` keeps their
+content around while they close. On the home page, add `data-reveal` to an element
+(with an optional `--delay`) to fade it up the first time it scrolls into view. Scroll
+reveals are kept off the hubs, since people read those straight away and often. Turning
+on reduced motion in the operating system removes all of it.
 
 **Design rules (polish pass).** Secondary text is never lighter than 70% ink on
 paper; the contrast of every page was measured and no text style falls below 4.5:1.
@@ -335,6 +345,33 @@ design, replace the template image (keep it 2000 x 1414 px) and adjust the
 coordinates in `drawCertificate`. The signer's name comes from the committee
 account that issued it, and the certificate text is saved at issue time, so a
 later rename doesn't change it.
+
+**Exchange shop (`/shop`).** The committee adds rewards (name, description, cost,
+stock, optional photo), and can edit or hide them. Students exchange points for a
+reward; the points and one unit of stock are taken at once, using conditional
+database updates so a double click can't overspend and the last item can't be sold
+twice. The committee gets a notification and the request waits under "To hand over"
+until it is marked as handed over, or cancelled, which returns the points and the
+stock. Professors can look but not exchange.
+
+**Earned vs. spent points.** `bountyPoints` is everything a student has ever earned.
+Tiers, certificates and the leaderboard all read it, and the shop never lowers it.
+Spending adds to a separate `pointsSpent`, and the balance is the difference
+(`spendablePoints` in `lib/shop.js`).
+
+**Leaderboard (`/leaderboard`).** Every student ranked, visible to anyone signed in,
+with no email addresses. Equal points share a rank (1, 2, 2, 4), and the top three who
+have earned points get the podium. It has two views:
+
+- **This month** (the default) ranks by points from quests approved this month. Nothing
+  is wiped and no scheduled job runs: `getMonthlyLeaderboard` adds up each submission's
+  `approved` history events inside the current month, so the board starts again by itself
+  at midnight Phnom Penh time on the 1st (`lib/leaderboard.js`). Tier bonuses aren't
+  counted, and `bountyPoints`, tiers, certificates and shop balances are never touched.
+- **All time** (`?view=all`) ranks by `bountyPoints`, bonuses included, and never resets.
+
+The public home page previews this month's top three, but only shows their names to
+people who are signed in.
 
 **Resubmitting from the hub.** Every quest in the student hub's In progress tab has a
 Resubmit button. It opens a dialog (`components/ResubmitDialog.jsx`) where the student

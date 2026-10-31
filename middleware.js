@@ -19,11 +19,13 @@ export default withAuth(
     }
 
     // Anyone signed in (with a role already chosen) can reach the student
-    // area, the board, and the AI sidekick.
+    // area, the board, the AI sidekick, the shop and the leaderboard.
     if (
       (pathname.startsWith("/student") ||
         pathname.startsWith("/board") ||
-        pathname.startsWith("/ai-sidekick")) &&
+        pathname.startsWith("/ai-sidekick") ||
+        pathname.startsWith("/shop") ||
+        pathname.startsWith("/leaderboard")) &&
       !role
     ) {
       return NextResponse.redirect(new URL("/login", req.url));
@@ -42,5 +44,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/professor/:path*", "/committee/:path*", "/student/:path*", "/board/:path*", "/ai-sidekick/:path*"],
+  matcher: ["/professor/:path*", "/committee/:path*", "/student/:path*", "/board/:path*", "/ai-sidekick/:path*", "/shop/:path*", "/leaderboard/:path*"],
 };

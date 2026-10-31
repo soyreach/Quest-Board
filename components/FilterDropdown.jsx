@@ -47,8 +47,8 @@ export default function FilterDropdown({ label, value, options, onChange, width 
       </button>
 
       <div
-        className={`absolute left-0 top-[calc(100%+8px)] min-w-full w-max max-w-xs bg-[var(--paper)] rounded-xl border border-black/10 shadow-xl p-1.5 z-30 origin-top transition-all duration-150 ease-out ${
-          open ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-1 pointer-events-none"
+        className={`absolute left-0 top-[calc(100%+8px)] min-w-full w-max max-w-xs bg-[var(--paper)] rounded-xl border border-black/10 shadow-xl p-1.5 z-30 origin-top transition-[opacity,transform,visibility] duration-[180ms] ease-[var(--ease-out)] ${
+          open ? "opacity-100 scale-100 translate-y-0" : "invisible opacity-0 scale-95 -translate-y-1 pointer-events-none"
         }`}
       >
         {options.map((o) => (

@@ -1,7 +1,11 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { Gift } from "lucide-react";
+import { authOptions } from "@/lib/auth";
 import ScrollButton from "@/components/ScrollButton";
-import { getBoardStats, getTopQuest } from "@/lib/queries";
-import { TIERS } from "@/lib/tiers";
+import ScrollReveal from "@/components/ScrollReveal";
+import { getBoardStats, getMonthlyLeaderboard, getShopItems, getTopQuest } from "@/lib/queries";
+import { TIERS, currentTier } from "@/lib/tiers";
 
 // Always read the current board, so "Quest of the week" never goes stale.
 export const dynamic = "force-dynamic";
@@ -26,30 +30,58 @@ async function loadStats() {
   }
 }
 
+// Three rewards a student could exchange for right now.
+async function loadRewards() {
+  try {
+    return (await getShopItems()).filter((item) => item.stock > 0).slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
+// The top of this month's leaderboard, leaving out anyone with no points yet.
+async function loadLeaders() {
+  try {
+    return (await getMonthlyLeaderboard()).filter((s) => s.score > 0).slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
+const PODIUM_COLORS = { 1: "#C99A3C", 2: "#9AA3B2", 3: "#B87333" };
+
 export default async function HomePage() {
-  const [quest, stats] = await Promise.all([loadTopQuest(), loadStats()]);
+  const [quest, stats, rewards, leaders, session] = await Promise.all([
+    loadTopQuest(),
+    loadStats(),
+    loadRewards(),
+    loadLeaders(),
+    getServerSession(authOptions),
+  ]);
   const description = quest?.description || "";
   const blurb = description.length > 110 ? `${description.slice(0, 110).trimEnd()}…` : description;
 
   return (
     <div className="page-enter">
+      <ScrollReveal />
       <div className="hero-bg text-white -mt-24">
         <div className="max-w-4xl mx-auto px-6 pt-40 pb-24 relative flex flex-col items-center text-center">
-          <span className="badge bg-white/10 border border-white/20 text-white/90 mb-6">
+          <span className="hero-rise badge bg-white/10 border border-white/20 text-white/90 mb-6">
             Built for AUPP · open to any student or faculty account
           </span>
-          <h1 className="font-display font-bold text-4xl md:text-6xl leading-[1.08] mb-6 max-w-3xl">
+          <h1 className="hero-rise font-display font-bold text-4xl md:text-6xl leading-[1.08] mb-6 max-w-3xl" style={{ "--i": 1 }}>
             Turn theoretical classwork into CV-ready credentials
           </h1>
-          <p className="text-white/70 text-lg mb-9 max-w-xl">
+          <p className="hero-rise text-white/70 text-lg mb-9 max-w-xl" style={{ "--i": 2 }}>
             Professors post real project work as quests. Students complete them for bounty
-            points. The school verifies the skill and backs it with a certificate — no open
-            marketplace, no spam, just your own coursework made to count.
+            points, climb the leaderboard and trade points for rewards. The school verifies the
+            skill and backs it with a certificate — no open marketplace, no spam, just your own
+            coursework made to count.
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="hero-rise flex flex-wrap justify-center gap-4" style={{ "--i": 3 }}>
             <ScrollButton targetId="how-it-works" className="btn btn-light">See how it works</ScrollButton>
           </div>
-          <div className="mt-16 pt-8 border-t border-white/10 w-full flex flex-col items-center gap-3">
+          <div className="hero-rise mt-16 pt-8 border-t border-white/10 w-full flex flex-col items-center gap-3" style={{ "--i": 4 }}>
             <span className="text-white/70 text-xs uppercase tracking-wide">Quests currently posted across</span>
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-white/75 text-sm">
               <span>CS301 · Systems</span>
@@ -64,7 +96,7 @@ export default async function HomePage() {
 
       <div className="max-w-6xl mx-auto px-6 py-24">
         <div className="grid md:grid-cols-2 gap-14 items-center">
-          <div>
+          <div data-reveal>
             <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">
               AUPP · Exercises with real bounties
             </span>
@@ -81,7 +113,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="paper-note" style={{ rotate: "-1.4deg" }}>
+          <div data-reveal className="paper-note" style={{ rotate: "-1.4deg", "--delay": "80ms" }}>
             <div className="pin" />
             {quest && <div className="stamp">{quest.bountyPoints}<small>PTS</small></div>}
             <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">Quest of the week</span>
@@ -103,7 +135,7 @@ export default async function HomePage() {
       </div>
 
       <section id="how-it-works" className="max-w-6xl mx-auto px-6 pb-24 scroll-mt-28">
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+        <div data-reveal className="flex flex-wrap items-end justify-between gap-4 mb-8">
           <div>
             <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">How it works</span>
             <h2 className="font-display font-bold text-3xl md:text-4xl mt-2">The life of a quest</h2>
@@ -113,7 +145,7 @@ export default async function HomePage() {
           </p>
         </div>
 
-        <div className="corkboard">
+        <div data-reveal className="corkboard">
           <div className="journey">
             <svg className="journey-string" viewBox="0 0 300 44" preserveAspectRatio="none" aria-hidden="true">
               <path
@@ -128,7 +160,7 @@ export default async function HomePage() {
             </svg>
 
             {/* 1 — the professor pins it */}
-            <article className="journey-note paper-note index-card" style={{ rotate: "-1.6deg" }}>
+            <article data-reveal className="journey-note paper-note index-card" style={{ rotate: "-1.6deg", "--delay": "120ms" }}>
               <div className="pin" />
               <div className="step-label mb-4"><b>01</b> A professor pins it</div>
               <div className="stamp" style={{ top: 44 }}>150<small>PTS</small></div>
@@ -141,7 +173,7 @@ export default async function HomePage() {
             </article>
 
             {/* 2 — a student works it */}
-            <article className="journey-note sticky-note" style={{ rotate: "1.8deg" }}>
+            <article data-reveal className="journey-note sticky-note" style={{ rotate: "1.8deg", "--delay": "200ms" }}>
               <div className="pin" />
               <div className="step-label mb-3"><b>02</b> A student takes it on</div>
               <ul className="hand-list space-y-0.5">
@@ -156,7 +188,7 @@ export default async function HomePage() {
             </article>
 
             {/* 3 — faculty signs it off */}
-            <article className="journey-note slip" style={{ rotate: "-0.8deg" }}>
+            <article data-reveal className="journey-note slip" style={{ rotate: "-0.8deg", "--delay": "280ms" }}>
               <div className="pin" />
               <div className="step-label mb-4"><b>03</b> Faculty signs it off</div>
               <div className="flex items-center justify-between gap-3 mb-4">
@@ -174,8 +206,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 pb-28">
-        <div className="ledger">
+      <section className="max-w-6xl mx-auto px-6 pb-24">
+        <div data-reveal className="ledger">
           <div className="grid lg:grid-cols-[1fr_1.3fr]">
             <div className="p-8 md:p-10 lg:border-r border-[color:var(--line)]">
               <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">The climb</span>
@@ -194,7 +226,7 @@ export default async function HomePage() {
             <div className="p-8 md:p-10 flex flex-col justify-center">
               <ol className="ledger-track">
                 {TIERS.map((t, i) => (
-                  <li key={t.name} className="text-center px-2">
+                  <li key={t.name} data-reveal className="text-center px-2" style={{ "--delay": `${120 + i * 80}ms` }}>
                     <div className="seal" style={{ "--seal": t.color }} aria-hidden="true">{t.name[0]}</div>
                     <div className="font-display font-semibold text-lg mt-4">{t.name}</div>
                     <div className="text-sm font-medium tabular-nums">{t.at.toLocaleString("en-US")} pts</div>
@@ -217,6 +249,89 @@ export default async function HomePage() {
                   <span className="whitespace-nowrap">{stats.certificates} {stats.certificates === 1 ? "certificate" : "certificates"} signed</span>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-6 pb-28">
+        <div data-reveal className="flex flex-wrap items-end justify-between gap-4 mb-8">
+          <div>
+            <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">Beyond the certificate</span>
+            <h2 className="font-display font-bold text-3xl md:text-4xl mt-2">Spend your points. Keep your rank.</h2>
+          </div>
+          <p className="font-hand text-lg text-[var(--ink)]/75 max-w-xs md:text-right">
+            Buying a hoodie never costs you a place on the leaderboard.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div data-reveal className="ledger p-8 flex flex-col">
+            <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">The exchange shop</span>
+            <h3 className="font-display font-bold text-2xl mt-2 mb-2">Trade points for real rewards</h3>
+            <p className="text-[var(--ink)]/75 leading-relaxed mb-5">
+              The school committee stocks the shelf. Exchange your points, then collect your reward from them.
+            </p>
+            {rewards.length === 0 ? (
+              <p className="meta mb-6">The committee is still stocking the shelf. Check back soon.</p>
+            ) : (
+              <ul className="row-list mb-6">
+                {rewards.map((item) => (
+                  <li key={item._id} className="py-3 flex items-center gap-3">
+                    <div className="shop-photo w-14 shrink-0">
+                      {item.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={item.imageUrl} alt="" />
+                      ) : (
+                        <Gift size={20} strokeWidth={1.5} aria-hidden="true" />
+                      )}
+                    </div>
+                    <span className="min-w-0 flex-1 font-medium truncate">{item.name}</span>
+                    <span className="text-sm font-bold tabular-nums text-[var(--stamp)] shrink-0">
+                      {item.pointsCost.toLocaleString("en-US")} pts
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-auto">
+              <Link href="/shop" className="btn btn-primary">Visit the shop</Link>
+            </div>
+          </div>
+
+          <div data-reveal className="ledger p-8 flex flex-col" style={{ "--delay": "80ms" }}>
+            <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">The leaderboard</span>
+            <h3 className="font-display font-bold text-2xl mt-2 mb-2">See who&apos;s on top this month</h3>
+            <p className="text-[var(--ink)]/75 leading-relaxed mb-5">
+              A new race starts on the 1st of every month, so anyone can take first place.
+            </p>
+            {leaders.length === 0 ? (
+              <p className="meta mb-6">No quests have been approved this month yet. Complete one to take first place.</p>
+            ) : (
+              <ol className="row-list mb-6">
+                {leaders.map((s) => {
+                  const tier = currentTier(s.bountyPoints);
+                  return (
+                    <li key={s._id} className="py-3 flex items-center gap-3">
+                      <div className="seal seal-sm shrink-0" style={{ "--seal": PODIUM_COLORS[s.rank] }}>
+                        <span className="sr-only">Rank </span>{s.rank}
+                      </div>
+                      {/* The home page is public, so names are only shown to people signed in. */}
+                      <span className="min-w-0 flex-1 font-medium truncate">
+                        {session ? s.name : `${tier ? `${tier.name} tier` : "Rising"} student`}
+                      </span>
+                      <span className="text-sm font-bold tabular-nums shrink-0">
+                        {s.score.toLocaleString("en-US")} pts
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+            <div className="mt-auto">
+              <Link href="/leaderboard" className="btn btn-outline">
+                {session || leaders.length === 0 ? "See the full leaderboard" : "Sign in to see names"}
+              </Link>
             </div>
           </div>
         </div>

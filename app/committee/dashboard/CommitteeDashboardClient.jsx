@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Award, Download, Gift } from "lucide-react";
 import { MAX_TIER_POINTS, currentTier } from "@/lib/tiers";
 import { downloadCertificatePdf } from "@/lib/certificatePdf";
+import { useLingering } from "@/lib/useLingering";
 
 const REWARD_IDEAS = ["Campus bookstore voucher", "Quest Board merch pack", "Lunch with the faculty"];
 
@@ -15,7 +16,8 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
   const [students] = useState(initialStudents);
   const [awards, setAwards] = useState(initialAwards);
   const [tab, setTab] = useState("ready");
-  const [dialog, setDialog] = useState(null); // { mode: "certificate" | "reward", student }
+  const [openDialogFor, setDialog] = useState(null); // { mode: "certificate" | "reward", student }
+  const dialog = useLingering(openDialogFor); // stays on screen while the dialog closes
   const [recipientName, setRecipientName] = useState("");
   const [reward, setReward] = useState("");
   const [note, setNote] = useState("");
@@ -207,7 +209,7 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
         ))}
       </div>
 
-      <div className="folder-panel">
+      <div key={tab} className="folder-panel tab-fade">
         {tab === "ready" &&
           (ready.length === 0 ? (
             <p className="empty-note">No one is waiting. Students appear here the moment they reach Gold.</p>
@@ -264,7 +266,7 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
           ))}
       </div>
 
-      <div className={`modal-backdrop ${dialog ? "open" : ""}`} onClick={closeDialog}>
+      <div className={`modal-backdrop ${openDialogFor ? "open" : ""}`} onClick={closeDialog}>
         {dialog && (
           <form onSubmit={submit} className="w-[92vw] max-w-md plain-modal p-8 max-h-[86vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display font-semibold text-xl mb-1">

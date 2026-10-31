@@ -12,6 +12,8 @@ export const NOTIFICATION_TYPES = [
   "tier_reached", // student: reached Bronze, Silver or Gold
   "benchmark_reached", // legacy: kept so older notifications still load
   "submission_received", // professor: a student turned in work
+  "exchange_requested", // committee: a student exchanged points for a shop reward
+  "exchange_updated", // student: their shop reward was handed over or cancelled
 ];
 
 const NotificationSchema = new mongoose.Schema(

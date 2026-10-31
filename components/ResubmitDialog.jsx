@@ -6,7 +6,7 @@ import { filesOf } from "@/lib/submissionFiles";
 
 // Lets a student swap in new files for a quest from their hub, so they don't
 // have to go back to the board. Same drag-and-drop box as the board's submit form.
-export default function ResubmitDialog({ submission, onClose, onResubmitted }) {
+export default function ResubmitDialog({ open, submission, onClose, onResubmitted }) {
   const [files, setFiles] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -62,7 +62,7 @@ export default function ResubmitDialog({ submission, onClose, onResubmitted }) {
   }
 
   return (
-    <div className={`modal-backdrop ${shown ? "open" : ""}`} onClick={() => !busy && onClose()}>
+    <div className={`modal-backdrop ${shown && open ? "open" : ""}`} onClick={() => !busy && onClose()}>
       <div
         role="dialog"
         aria-modal="true"

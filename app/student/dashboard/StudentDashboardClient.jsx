@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Archive, Award, Check, Copy, Download, FileText, Gift, MessageSquareText, Paperclip, RotateCcw, Upload } from "lucide-react";
 import { MAX_TIER_POINTS, barSegments, bonusEarned, currentTier, nextTier } from "@/lib/tiers";
+import { spendablePoints } from "@/lib/shop";
+import { useLingering } from "@/lib/useLingering";
 import { downloadCertificatePdf } from "@/lib/certificatePdf";
 import ResubmitDialog from "@/components/ResubmitDialog";
 import { filesOf } from "@/lib/submissionFiles";
@@ -88,6 +90,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
   const [pdfBusy, setPdfBusy] = useState(null);
   const [pdfError, setPdfError] = useState("");
   const [resubmitFor, setResubmitFor] = useState(null);
+  const resubmitShown = useLingering(resubmitFor);
   const [flash, setFlash] = useState("");
   const [expanded, setExpanded] = useState({});
 
@@ -335,6 +338,9 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
         <div>
           <div className="stat-label">Bounty points</div>
           <div className="stat-value">{points.toLocaleString("en-US")}</div>
+          <Link href="/shop" className="file-link mt-1 text-xs">
+            {spendablePoints(me).toLocaleString("en-US")} to spend in the shop
+          </Link>
         </div>
         <div>
           <div className="stat-label">Current tier</div>
@@ -375,7 +381,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
             ))}
           </div>
 
-          <div className="folder-panel">
+          <div key={tab} className="folder-panel tab-fade">
             {archiveError && <p className="text-xs text-red-600 px-5 pt-4">{archiveError}</p>}
 
             {tab === "progress" && (
@@ -430,7 +436,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                   <div key={seg.name} style={{ flex: seg.span }} className="h-2 rounded-full overflow-hidden bg-black/[0.08]">
                     <div
                       className="h-full rounded-full"
-                      style={{ width: `${seg.fraction * 100}%`, background: seg.gradient, transition: "width 1s cubic-bezier(.22,1,.36,1)" }}
+                      style={{ width: `${seg.fraction * 100}%`, background: seg.gradient, transition: "width 1s var(--ease-out)" }}
                     />
                   </div>
                 ))}
@@ -509,9 +515,11 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
         </aside>
       </div>
 
-      {resubmitFor && (
+      {resubmitShown && (
         <ResubmitDialog
-          submission={resubmitFor}
+          key={resubmitShown._id}
+          open={Boolean(resubmitFor)}
+          submission={resubmitShown}
           onClose={() => setResubmitFor(null)}
           onResubmitted={handleResubmitted}
         />

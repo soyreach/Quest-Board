@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { downloadCertificatePdf } from "@/lib/certificatePdf";
+import { useLingering } from "@/lib/useLingering";
 
 const POLL_MS = 30000;
 
@@ -19,6 +20,8 @@ const ICONS = {
   tier_reached: "🏅",
   benchmark_reached: "🏆",
   submission_received: "📥",
+  exchange_requested: "🛍️",
+  exchange_updated: "🎁",
 };
 
 function timeAgo(dateStr) {
@@ -33,8 +36,8 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-// `closeSignal` lets the nav close this panel when the account switcher opens
-// (and `onOpen` lets this panel close the switcher), so the two never overlap.
+// `closeSignal` lets the nav close this panel when the account menu opens
+// (and `onOpen` lets this panel close that menu), so the two never overlap.
 export default function NotificationBell({ closeSignal, onOpen }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -43,6 +46,7 @@ export default function NotificationBell({ closeSignal, onOpen }) {
   const role = session?.user?.role;
 
   const [open, setOpen] = useState(false);
+  const panelShown = useLingering(open, 120); // stays on screen while the panel closes
   const [items, setItems] = useState([]);
   const [unread, setUnread] = useState(0);
   const [loaded, setLoaded] = useState(false);
@@ -251,11 +255,12 @@ export default function NotificationBell({ closeSignal, onOpen }) {
         )}
       </button>
 
-      {open && (
+      {panelShown && (
         <div
           role="dialog"
           aria-label="Notifications"
-          className="absolute top-14 right-[-0.5rem] sm:right-0 w-[min(24rem,calc(100vw-2rem))] bg-[var(--paper)] text-[var(--ink)] rounded-xl shadow-xl border border-black/10 z-50 overflow-hidden"
+          data-closing={open ? undefined : ""}
+          className="pop absolute top-14 right-[-0.5rem] sm:right-0 w-[min(24rem,calc(100vw-2rem))] bg-[var(--paper)] text-[var(--ink)] rounded-xl shadow-xl border border-black/10 z-50 overflow-hidden"
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-black/5">
             <h3 className="font-display font-semibold text-sm">Notifications</h3>
