@@ -473,7 +473,8 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
             <div className="seg" role="group" aria-label="Filter posted quests">
               {QUEST_FILTERS.map((f) => (
                 <button key={f.key} type="button" aria-pressed={questFilter === f.key} onClick={() => setQuestFilter(f.key)}>
-                  {f.label} <span className="tabular-nums opacity-70">{filterCount(f.key)}</span>
+                  {f.label}
+                  <span className="count-pill">{filterCount(f.key)}</span>
                 </button>
               ))}
             </div>

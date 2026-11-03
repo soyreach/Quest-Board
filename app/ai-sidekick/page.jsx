@@ -82,7 +82,7 @@ export default function SidekickPage() {
   const activeThread = threads.find((t) => t._id === activeId);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 pt-10 pb-16 page-enter">
+    <div className="max-w-7xl mx-auto px-6 pt-10 pb-16">
       <header className="mb-6">
         <div className="hub-eyebrow">Study help</div>
         <h1 className="font-display font-bold text-3xl leading-tight">AI sidekick</h1>

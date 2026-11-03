@@ -158,6 +158,12 @@ em,i,cite,.italic{font-style:normal;}
 .page-enter{animation:pageIn 260ms var(--ease-out);}
 @keyframes pageIn{ from{opacity:0; translate:0 8px;} }
 .page-transitioning .page-enter{animation:none;}
+/* content that replaces a loading screen only fills in: no second slide */
+:root[data-from-loading] .page-enter{animation:fillIn 180ms ease;}
+:root[data-from-loading] .hero-rise{animation:none;}
+@keyframes fillIn{ from{opacity:0;} }
+/* already brought in by the crossfade (components/PageTransitions.jsx) */
+.page-enter[data-entered],.skeleton-in[data-entered],.hero-rise[data-entered]{animation:none;}
 
 /* crossfade between pages (components/PageTransitions.jsx); the nav stays put */
 nav[aria-label="Main"]{view-transition-name:site-nav;}
@@ -436,9 +442,12 @@ nav[aria-label="Main"] > div :focus-visible{outline-color:#fff;}
 .quiet-btn:active{transform:scale(.97);}
 .count-pill{display:inline-grid; place-content:center; min-width:1.4rem; height:1.4rem; padding:0 .4rem; border-radius:999px; font-size:.72rem; font-weight:700; font-variant-numeric:tabular-nums; background:var(--quiet-bg); color:var(--ink);}
 .folder-tab.active .count-pill{background:var(--wood); color:var(--on-wood);}
+/* in a segmented control the count is plain text: the gap sets it apart */
+.seg .count-pill{min-width:0; padding:0; background:none; color:var(--muted); font-weight:600;}
+.seg [aria-pressed="true"] .count-pill{color:var(--wood);}
 /* segmented control: 4px of padding, so the segments' corners are the track's minus 4px */
 .seg{display:inline-flex; padding:4px; border-radius:var(--r-md); background:var(--fill);}
-.seg button,.seg a{display:inline-flex; align-items:center; min-height:2.25rem; padding:0 .9rem; border-radius:calc(var(--r-md) - 4px); font-size:.82rem; font-weight:600; color:var(--muted); transition:color .15s ease, background-color .15s ease, box-shadow .15s ease;}
+.seg button,.seg a{display:inline-flex; align-items:center; gap:.5rem; min-height:2.25rem; padding:0 .9rem; border-radius:calc(var(--r-md) - 4px); font-size:.82rem; font-weight:600; color:var(--muted); transition:color .15s ease, background-color .15s ease, box-shadow .15s ease;}
 .seg button:hover,.seg a:hover{color:var(--ink);}
 .seg button[aria-pressed="true"],.seg a[aria-current="page"]{background:var(--paper); color:var(--ink); box-shadow:0 1px 2px rgb(var(--shadow-rgb) / .12), 0 0 0 1px var(--line);}
 .field{width:100%; min-height:2.75rem; border-radius:var(--r-md); border:1px solid var(--line-strong); background:var(--field); color:var(--ink); padding:.65rem .85rem; font-size:.9rem; transition:border-color .15s ease, box-shadow .15s ease;}
@@ -573,3 +582,9 @@ p[role="status"]{animation:statusIn 220ms var(--ease-out);}
 .timeline-item.approved .timeline-dot{background:var(--ok-bg); border-color:color-mix(in srgb, var(--ok-fg) 40%, transparent); color:var(--ok-fg);}
 .timeline-note{margin-top:.5rem; padding:.6rem .85rem; border-radius:var(--r-md); background:var(--lavender);}
 .timeline-note.urgent{background:color-mix(in srgb, var(--danger) 9%, var(--paper)); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--danger) 25%, transparent);}
+
+/* loading screens fade straight in: by the time one is mounted the old page is
+   already gone, so waiting would only show an empty page */
+.skeleton-in{animation:skeletonIn 160ms ease;}
+.page-transitioning .skeleton-in{animation:none;}
+@keyframes skeletonIn{ from{opacity:0;} }
