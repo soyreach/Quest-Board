@@ -205,12 +205,12 @@ export default function BoardClient({ initialQuests }) {
       </div>
 
       <div
-        className={`corkboard cards-in p-6 sm:p-8 md:p-10 min-h-[560px] grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 content-start transition-opacity duration-200 ${loading ? "opacity-60" : ""}`}
+        className={`corkboard cards-in p-6 sm:p-8 md:p-10 min-h-[560px] grid sm:grid-cols-2 lg:grid-cols-3 gap-6 content-start transition-opacity duration-200 ${loading ? "opacity-60" : ""}`}
         aria-busy={loading}
       >
         {!loading && quests.length === 0 && (
           <div className="col-span-full flex justify-center py-12">
-            <div className="paper-note max-w-sm text-center" style={{ transform: "rotate(-1deg)" }}>
+            <div className="paper-note max-w-sm text-center">
               <div className="pin" />
               <h2 className="font-display font-semibold text-lg mb-1">Nothing pinned here</h2>
               <p className="meta mb-4">No quests match those filters yet. Try widening the search.</p>
@@ -231,8 +231,8 @@ export default function BoardClient({ initialQuests }) {
               role="button"
               tabIndex={0}
               aria-label={`${q.title}, ${q.bountyPoints} points. Open brief`}
-              className={`quest-card p-5 ${dissolvingIds.includes(q._id) ? "dissolving" : ""}`}
-              style={{ transform: `rotate(${((i % 5) - 2) * 0.7}deg)`, "--i": Math.min(i, 8) }}
+              className={`quest-card p-6 ${dissolvingIds.includes(q._id) ? "dissolving" : ""}`}
+              style={{ "--i": Math.min(i, 8) }}
               onClick={() => openBrief(q)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -246,7 +246,7 @@ export default function BoardClient({ initialQuests }) {
               <span className={`tape ${TAPE[q.difficulty] || "tape-j"}`}>{q.difficulty}</span>
               <h3 className="font-display font-semibold text-lg leading-snug mt-2.5 mb-0.5 pr-16 line-clamp-2">{q.title}</h3>
               <div className="text-xs font-medium mb-2.5 text-[var(--wood)] line-clamp-1">{q.course}</div>
-              <p className="text-[13px] leading-relaxed line-clamp-3 text-[var(--ink)]/80 mb-4">{q.description}</p>
+              <p className="text-[13px] leading-relaxed line-clamp-3 text-ink/80 mb-4">{q.description}</p>
               <div className="mt-auto pt-3 flex items-center justify-between gap-3 border-t border-dashed border-[color:var(--line)]">
                 <span className="skill-chip truncate">{q.skillTag}</span>
                 {q.deadline && (
@@ -327,7 +327,7 @@ export default function BoardClient({ initialQuests }) {
                           <span>{r.criterion}</span>
                           <span className="font-semibold tabular-nums">{r.weightPoints}%</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-black/[0.07] overflow-hidden">
+                        <div className="h-1.5 rounded-full bg-[var(--fill)] overflow-hidden">
                           <div className="h-full rounded-full bg-[var(--wood)]" style={{ width: `${Math.min(100, r.weightPoints)}%` }} />
                         </div>
                       </li>
@@ -344,7 +344,7 @@ export default function BoardClient({ initialQuests }) {
                 {files.length > 0 && (
                   <ul className="space-y-2 mb-3">
                     {files.map((f) => (
-                      <li key={`${f.name}-${f.size}-${f.lastModified}`} className="flex items-center gap-3 rounded-xl border border-[color:var(--line)] bg-[#FFFEF0] px-4 py-3">
+                      <li key={`${f.name}-${f.size}-${f.lastModified}`} className="flex items-center gap-3 rounded-xl border border-[color:var(--line)] bg-[var(--field)] px-4 py-3">
                         <span className="w-9 h-9 rounded-lg bg-[var(--lavender)] grid place-content-center text-[var(--wood)] shrink-0" aria-hidden="true">
                           <FileText size={17} />
                         </span>
@@ -398,7 +398,7 @@ export default function BoardClient({ initialQuests }) {
                   }}
                 />
 
-                {submitError && <p className="text-xs text-red-600 mb-2" role="alert">{submitError}</p>}
+                {submitError && <p className="text-xs text-danger mb-2" role="alert">{submitError}</p>}
                 <button className="btn btn-primary w-full" disabled={submitting} onClick={() => handleSubmitQuest(openQuest._id)}>
                   {submitting ? "Submitting…" : "Turn in quest"}
                 </button>

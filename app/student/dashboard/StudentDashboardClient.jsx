@@ -169,7 +169,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
     const hidden = group.events.length - shown.length;
     return (
       <div className="mt-4">
-        <div className="text-[0.7rem] font-bold tracking-wider uppercase text-[var(--ink)]/60 mb-2">History</div>
+        <div className="text-[0.7rem] font-bold tracking-wider uppercase text-ink/60 mb-2">History</div>
         <ol className="timeline">
           {shown.map((e, i) => {
             const Icon = EVENT_ICON[e.type] || Upload;
@@ -294,9 +294,9 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
           </div>
         )}
         {renderTimeline(group)}
-        <div className="mt-3 rounded-[10px] bg-[var(--lavender)] p-3 flex items-start justify-between gap-3">
+        <div className="mt-3 rounded-xl bg-[var(--lavender)] p-3 flex items-start justify-between gap-3">
           <div>
-            <div className="text-[0.7rem] font-bold tracking-wider uppercase text-[var(--ink)]/60 mb-0.5">Line for your CV</div>
+            <div className="text-[0.7rem] font-bold tracking-wider uppercase text-ink/60 mb-0.5">Line for your CV</div>
             <p className="text-sm">{bullet}</p>
           </div>
           <button type="button" className="quiet-btn shrink-0" onClick={() => copyBullet(s._id, bullet)}>
@@ -346,7 +346,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
           <div className="stat-label">Current tier</div>
           <div className="stat-value flex items-center gap-2">
             {tier && <span className="w-2.5 h-2.5 rounded-full" style={{ background: tier.color }} aria-hidden="true" />}
-            {tier ? tier.name : <span className="text-[var(--ink)]/50">None yet</span>}
+            {tier ? tier.name : <span className="text-ink/50">None yet</span>}
           </div>
         </div>
         <div>
@@ -382,7 +382,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
           </div>
 
           <div key={tab} className="folder-panel tab-fade">
-            {archiveError && <p className="text-xs text-red-600 px-5 pt-4">{archiveError}</p>}
+            {archiveError && <p className="text-xs text-danger px-5 pt-4">{archiveError}</p>}
 
             {tab === "progress" && (
               pending.length === 0 ? (
@@ -433,7 +433,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                 className="flex gap-1 mb-5"
               >
                 {segments.map((seg) => (
-                  <div key={seg.name} style={{ flex: seg.span }} className="h-2 rounded-full overflow-hidden bg-black/[0.08]">
+                  <div key={seg.name} style={{ flex: seg.span }} className="h-2 rounded-full overflow-hidden bg-ink/[0.08]">
                     <div
                       className="h-full rounded-full"
                       style={{ width: `${seg.fraction * 100}%`, background: seg.gradient, transition: "width 1s var(--ease-out)" }}
@@ -447,7 +447,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                   <li key={seg.name} className="flex items-center gap-3">
                     <span
                       className="w-7 h-7 rounded-full grid place-content-center text-[0.7rem] font-bold shrink-0"
-                      style={seg.reached ? { background: seg.color, color: "#FDFBD4" } : { border: `1.5px dashed ${seg.color}`, color: seg.color }}
+                      style={seg.reached ? { background: seg.color, color: "#fff" } : { border: `1.5px dashed ${seg.color}`, color: seg.color }}
                       aria-hidden="true"
                     >
                       {seg.reached ? <Check size={14} strokeWidth={3} /> : seg.name[0]}
@@ -458,7 +458,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                         {seg.at.toLocaleString("en-US")} pts{seg.bonus ? ` · +${seg.bonus} bonus` : ""}
                       </div>
                     </div>
-                    <span className="text-xs font-medium tabular-nums text-[var(--ink)]/70 shrink-0">
+                    <span className="text-xs font-medium tabular-nums text-ink/70 shrink-0">
                       {seg.reached ? "Reached" : `${(seg.at - points).toLocaleString("en-US")} to go`}
                     </span>
                   </li>
@@ -497,7 +497,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                           {new Date(a.issuedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
                         </div>
                         {a.type === "certificate" && a.reward && <div className="meta">Reward: {a.reward}</div>}
-                        {a.note && <p className="text-sm italic text-[var(--ink)]/70 mt-1">&ldquo;{a.note}&rdquo;</p>}
+                        {a.note && <p className="text-sm text-ink/70 mt-1">&ldquo;{a.note}&rdquo;</p>}
                         {a.type === "certificate" && (
                           <button className="btn btn-primary btn-sm mt-3" onClick={() => downloadPdf(a)} disabled={pdfBusy === a._id}>
                             <Download size={14} aria-hidden="true" />
@@ -510,7 +510,7 @@ export default function StudentDashboardClient({ initialMe, initialSubmissions, 
                 })}
               </div>
             )}
-            {pdfError && <p className="text-xs text-red-600 px-5 pb-4">{pdfError}</p>}
+            {pdfError && <p className="text-xs text-danger px-5 pb-4">{pdfError}</p>}
           </div>
         </aside>
       </div>

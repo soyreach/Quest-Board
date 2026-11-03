@@ -8,7 +8,6 @@ import { currentTier } from "@/lib/tiers";
 const PODIUM_COLORS = { 1: "#C99A3C", 2: "#9AA3B2", 3: "#B87333" };
 // First place sits in the middle and higher up on wider screens.
 const PODIUM_PLACES = ["sm:order-2 sm:-translate-y-8", "sm:order-1", "sm:order-3"];
-const PODIUM_TILT = ["0deg", "-1.2deg", "1.2deg"];
 
 const pts = (n) => n.toLocaleString("en-US");
 const ptsUnit = (n) => (n === 1 ? "pt" : "pts");
@@ -89,7 +88,7 @@ export default async function LeaderboardPage({ searchParams }) {
 
       {podium.length === 0 ? (
         <div className="corkboard p-8 flex justify-center mb-8">
-          <div className="paper-note max-w-sm text-center" style={{ transform: "rotate(-1deg)" }}>
+          <div className="paper-note max-w-sm text-center">
             <div className="pin" />
             <h2 className="font-display font-semibold text-lg mb-1">The podium is empty</h2>
             <p className="meta">
@@ -103,7 +102,7 @@ export default async function LeaderboardPage({ searchParams }) {
         <ol className="corkboard podium mb-8">
           {podium.map((s, i) => (
             <li key={s._id} className={`w-full sm:w-1/3 sm:max-w-[18rem] ${PODIUM_PLACES[i]}`}>
-              <div className={`paper-note text-center ${s._id === myId ? "is-me" : ""}`} style={{ transform: `rotate(${PODIUM_TILT[i]})` }}>
+              <div className={`paper-note text-center ${s._id === myId ? "is-me" : ""}`}>
                 <div className="pin" />
                 <div className="seal mb-3" style={{ "--seal": PODIUM_COLORS[s.rank] }}>
                   <span className="sr-only">Rank </span>{s.rank}
@@ -137,7 +136,7 @@ export default async function LeaderboardPage({ searchParams }) {
                 </div>
                 <span className="hidden sm:inline-flex"><TierBadge points={s.bountyPoints} /></span>
                 <div className="text-sm font-semibold tabular-nums shrink-0 w-24 text-right">
-                  {pts(s.score)} <span className="font-normal text-[var(--ink)]/60">{ptsUnit(s.score)}</span>
+                  {pts(s.score)} <span className="font-normal text-ink/60">{ptsUnit(s.score)}</span>
                 </div>
               </li>
             ))}

@@ -71,25 +71,25 @@ export default function ResubmitDialog({ open, submission, onClose, onResubmitte
         onClick={(e) => e.stopPropagation()}
       >
         <h3 id="resubmit-title" className="font-display font-semibold text-xl mb-1">Resubmit your work</h3>
-        <p className="text-sm text-[var(--ink)]/70 mb-4">
+        <p className="text-sm text-ink/70 mb-4">
           {submission.quest?.title}
           {submission.quest?.course ? ` · ${submission.quest.course}` : ""}
         </p>
 
         {needsRevision && submission.professorFeedback && (
           <div className="rounded-xl bg-[var(--lavender)] p-3 mb-4">
-            <div className="text-xs font-medium text-[var(--ink)]/70 mb-1">Your professor asked for changes</div>
-            <p className="text-sm italic">&quot;{submission.professorFeedback}&quot;</p>
+            <div className="text-xs font-medium text-ink/70 mb-1">Your professor asked for changes</div>
+            <p className="text-sm">&quot;{submission.professorFeedback}&quot;</p>
           </div>
         )}
         {!needsRevision && (
-          <p className="text-xs text-[var(--ink)]/70 mb-4">
+          <p className="text-xs text-ink/70 mb-4">
             Your professor hasn&apos;t reviewed this yet. New files replace the ones they will see.
           </p>
         )}
 
         {currentFiles.length > 0 && (
-          <p className="text-xs text-[var(--ink)]/70 mb-2 break-words">
+          <p className="text-xs text-ink/70 mb-2 break-words">
             Current file{currentFiles.length === 1 ? "" : "s"}: {currentFiles.map((f) => f.name).join(", ")}
           </p>
         )}
@@ -99,7 +99,7 @@ export default function ResubmitDialog({ open, submission, onClose, onResubmitte
             {files.map((f) => (
               <li
                 key={`${f.name}-${f.size}-${f.lastModified}`}
-                className="flex items-center gap-2 rounded-lg border border-[color:var(--line)] bg-white/50 px-3 py-2"
+                className="flex items-center gap-2 rounded-lg border border-[color:var(--line)] bg-[var(--field)] px-3 py-2"
               >
                 <span className="text-sm font-medium truncate flex-1 min-w-0">📄 {f.name}</span>
                 <button
@@ -130,8 +130,8 @@ export default function ResubmitDialog({ open, submission, onClose, onResubmitte
             onClick={() => inputRef.current?.click()}
             className={`rounded-xl border-2 border-dashed ${files.length ? "p-3" : "p-6"} text-center cursor-pointer mb-3 transition`}
             style={{
-              borderColor: dragOver ? "var(--indigo)" : "rgba(0,0,0,0.15)",
-              background: dragOver ? "rgba(117,96,75,0.1)" : "rgba(255,255,255,0.5)",
+              borderColor: dragOver ? "var(--indigo)" : "var(--line-strong)",
+              background: dragOver ? "var(--indigo-soft)" : "var(--field)",
             }}
           >
             {files.length ? (
@@ -157,7 +157,7 @@ export default function ResubmitDialog({ open, submission, onClose, onResubmitte
           }}
         />
 
-        {error && <p className="text-xs text-red-600 mb-2">{error}</p>}
+        {error && <p className="text-xs text-danger mb-2">{error}</p>}
 
         <div className="flex justify-end gap-2">
           <button type="button" className="btn btn-light btn-sm border border-[color:var(--line)]" onClick={onClose} disabled={busy}>

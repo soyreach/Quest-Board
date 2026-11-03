@@ -6,25 +6,28 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // Every color is a theme token from app/globals.css. `ink` is written as
+      // channels so opacity modifiers like text-ink/70 work in every theme.
       colors: {
-        ink: "#14122B",
-        violet: "#241C6B",
-        violet2: "#3B2FA0",
-        indigo: "#5B4CF5",
-        indigoSoft: "#EEF0FC",
-        lavender: "#F5F4FC",
-        cork: "#9B6B3C",
-        corkDark: "#6E4A28",
-        parchment: "#F3E6C4",
-        gold: "#C99A3C",
+        ink: "rgb(var(--ink-rgb) / <alpha-value>)",
+        danger: "var(--danger)",
+        success: "var(--success)",
+        warn: "var(--warn-fg)",
+        "warn-soft": "var(--warn-bg)",
       },
       fontFamily: {
-        display: ["Sora", "sans-serif"],
-        sans: ["Inter", "sans-serif"],
-        hand: ["Kalam", "cursive"],
+        display: ["var(--font-display)", "sans-serif"],
+        sans: ["var(--font-text)", "sans-serif"],
       },
+      // The same concentric radius scale the stylesheet uses.
       borderRadius: {
-        quest: "4px 14px 6px 16px / 14px 6px 16px 4px",
+        sm: "var(--r-xs)",
+        DEFAULT: "var(--r-xs)",
+        md: "var(--r-xs)",
+        lg: "var(--r-sm)",
+        xl: "var(--r-md)",
+        "2xl": "var(--r-lg)",
+        "3xl": "var(--r-xl)",
       },
     },
   },

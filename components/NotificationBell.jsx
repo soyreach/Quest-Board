@@ -228,7 +228,7 @@ export default function NotificationBell({ closeSignal, onOpen }) {
         aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className={`relative w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-white bg-white/10 hover:bg-white/20 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--paper)] ${
+        className={`relative w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-white bg-white/10 hover:bg-white/20 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${
           ringing ? "bell-ring" : ""
         }`}
       >
@@ -260,24 +260,24 @@ export default function NotificationBell({ closeSignal, onOpen }) {
           role="dialog"
           aria-label="Notifications"
           data-closing={open ? undefined : ""}
-          className="pop absolute top-14 right-[-0.5rem] sm:right-0 w-[min(24rem,calc(100vw-2rem))] bg-[var(--paper)] text-[var(--ink)] rounded-xl shadow-xl border border-black/10 z-50 overflow-hidden"
+          className="pop absolute top-14 right-[-0.5rem] sm:right-0 w-[min(24rem,calc(100vw-2rem))] bg-[var(--paper)] text-[var(--ink)] rounded-2xl shadow-[var(--shadow-pop)] border border-[color:var(--line)] z-50 overflow-hidden"
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-black/5">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-ink/5">
             <h3 className="font-display font-semibold text-sm">Notifications</h3>
             <button
               type="button"
               onClick={markAllRead}
               disabled={unread === 0}
-              className="text-xs underline text-[var(--ink)]/70 hover:text-[var(--ink)] disabled:no-underline disabled:opacity-40 disabled:cursor-default"
+              className="text-xs underline text-ink/70 hover:text-[var(--ink)] disabled:no-underline disabled:opacity-40 disabled:cursor-default"
             >
               Mark all as read
             </button>
           </div>
 
           {!loaded ? (
-            <div className="px-4 py-10 text-center text-sm text-[var(--ink)]/70">Loading…</div>
+            <div className="px-4 py-10 text-center text-sm text-ink/70">Loading…</div>
           ) : items.length === 0 ? (
-            <div className="px-4 py-10 text-center text-sm text-[var(--ink)]/70">
+            <div className="px-4 py-10 text-center text-sm text-ink/70">
               You&apos;re all caught up.{" "}
               {role === "Professor"
                 ? "New submissions to review will show up here."
@@ -288,7 +288,7 @@ export default function NotificationBell({ closeSignal, onOpen }) {
               {items.map((n) => (
                 <li
                   key={n._id}
-                  className={`group flex flex-wrap gap-2 px-4 py-3 border-b border-black/5 last:border-b-0 ${
+                  className={`group flex flex-wrap gap-2 px-4 py-3 border-b border-ink/5 last:border-b-0 ${
                     n.read ? "" : "bg-[var(--indigo-soft)]"
                   }`}
                 >
@@ -311,15 +311,15 @@ export default function NotificationBell({ closeSignal, onOpen }) {
                           />
                         )}
                       </span>
-                      <span className="block text-xs text-[var(--ink)]/75 mt-0.5 break-words">{n.message}</span>
-                      <span className="block text-[11px] text-[var(--ink)]/70 mt-1">{timeAgo(n.createdAt)}</span>
+                      <span className="block text-xs text-ink/75 mt-0.5 break-words">{n.message}</span>
+                      <span className="block text-[11px] text-ink/70 mt-1">{timeAgo(n.createdAt)}</span>
                     </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => dismiss(n)}
                     aria-label="Dismiss notification"
-                    className="self-start text-xs px-1 text-[var(--ink)]/70 hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100"
+                    className="self-start text-xs px-1 text-ink/70 hover:text-danger sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100"
                   >
                     ✕
                   </button>
@@ -338,14 +338,14 @@ export default function NotificationBell({ closeSignal, onOpen }) {
             </ul>
           )}
 
-          {fileError && <div className="px-4 py-2 text-xs text-red-600 border-t border-black/5">{fileError}</div>}
+          {fileError && <div className="px-4 py-2 text-xs text-danger border-t border-ink/5">{fileError}</div>}
 
           {items.length > 0 && (
-            <div className="px-4 py-2 border-t border-black/5 text-right">
+            <div className="px-4 py-2 border-t border-ink/5 text-right">
               <button
                 type="button"
                 onClick={clearAll}
-                className="text-xs text-[var(--ink)]/70 hover:text-red-500"
+                className="text-xs text-ink/70 hover:text-danger"
               >
                 Clear all
               </button>

@@ -194,7 +194,7 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
       <article
         key={item._id}
         className={`quest-card shop-card p-4 ${item.active ? "" : "shop-card-hidden"}`}
-        style={{ transform: `rotate(${((i % 5) - 2) * 0.5}deg)`, "--i": Math.min(i, 8) }}
+        style={{ "--i": Math.min(i, 8) }}
       >
         <div className="pin" />
         <div className={`stamp ${item.pointsCost >= 100000 ? "stamp-xlong" : item.pointsCost >= 1000 ? "stamp-long" : ""}`}>
@@ -210,7 +210,7 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
         </div>
         <h3 className="font-display font-semibold text-lg leading-snug mb-1 line-clamp-2 break-words">{item.name}</h3>
         {item.description && (
-          <p className="text-[13px] leading-relaxed line-clamp-3 text-[var(--ink)]/80 mb-3 break-words">{item.description}</p>
+          <p className="text-[13px] leading-relaxed line-clamp-3 text-ink/80 mb-3 break-words">{item.description}</p>
         )}
 
         <div className="mt-auto pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-dashed border-[color:var(--line)]">
@@ -300,10 +300,10 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
     : null;
 
   const board = (
-    <div className={`corkboard ${cardsIntro ? "cards-in" : "tab-fade"} p-6 sm:p-8 md:p-10 min-h-[480px] grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 content-start`}>
+    <div className={`corkboard ${cardsIntro ? "cards-in" : "tab-fade"} p-6 sm:p-8 md:p-10 min-h-[480px] grid sm:grid-cols-2 lg:grid-cols-3 gap-6 content-start`}>
       {items.length === 0 ? (
         <div className="col-span-full flex justify-center py-12">
-          <div className="paper-note max-w-sm text-center" style={{ transform: "rotate(-1deg)" }}>
+          <div className="paper-note max-w-sm text-center">
             <div className="pin" />
             <h2 className="font-display font-semibold text-lg mb-1">Nothing on the shelf yet</h2>
             <p className="meta">
@@ -426,7 +426,7 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
             onClick={(e) => e.stopPropagation()}
           >
             <h3 id="exchange-title" className="font-display font-semibold text-xl mb-1 break-words">Exchange for {exchanging.name}?</h3>
-            <p className="text-sm text-[var(--ink)]/70 mb-5">You&apos;ll collect it from the school committee.</p>
+            <p className="text-sm text-ink/70 mb-5">You&apos;ll collect it from the school committee.</p>
             <div className="grid grid-cols-3 gap-2 mb-5">
               <div className="metric">
                 <div className="metric-label">You have</div>
@@ -441,7 +441,7 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
                 <div className="metric-value">{pts(Math.max(0, balance - exchanging.pointsCost))}</div>
               </div>
             </div>
-            {error && <p className="text-xs text-red-600 mb-3" role="alert">{error}</p>}
+            {error && <p className="text-xs text-danger mb-3" role="alert">{error}</p>}
             <div className="flex flex-wrap justify-end gap-2">
               <button type="button" className="btn btn-light btn-sm border border-[color:var(--line)]" onClick={closeDialogs}>Not now</button>
               <button type="button" className="btn btn-primary btn-sm" disabled={busy} onClick={confirmExchange}>
@@ -460,10 +460,10 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
             onClick={(e) => e.stopPropagation()}
           >
             <h3 id="cancel-title" className="font-display font-semibold text-xl mb-1">Cancel this request?</h3>
-            <p className="text-sm text-[var(--ink)]/70 mb-5 break-words">
+            <p className="text-sm text-ink/70 mb-5 break-words">
               {cancelling.student?.name} gets {pts(cancelling.pointsCost)} points back and {cancelling.itemName} returns to the shop&apos;s stock. They&apos;ll be notified. This can&apos;t be undone.
             </p>
-            {error && <p className="text-xs text-red-600 mb-3" role="alert">{error}</p>}
+            {error && <p className="text-xs text-danger mb-3" role="alert">{error}</p>}
             <div className="flex flex-wrap justify-end gap-2">
               <button type="button" className="btn btn-light btn-sm border border-[color:var(--line)]" onClick={closeDialogs}>Keep request</button>
               <button type="button" className="btn btn-primary btn-sm" disabled={busy} onClick={() => handleRequest(cancelling, "cancel")}>
@@ -477,7 +477,7 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
           <form onSubmit={saveReward} className="w-[92vw] max-w-md plain-modal p-8 max-h-[86vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display font-semibold text-xl mb-5">{rewardForm.item ? "Edit reward" : "Add a reward"}</h3>
 
-            <label htmlFor="reward-name" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Name</label>
+            <label htmlFor="reward-name" className="text-xs font-medium text-ink/70 mb-1 block">Name</label>
             <input
               id="reward-name"
               list="shop-reward-ideas"
@@ -492,7 +492,7 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
               {REWARD_IDEAS.map((r) => <option key={r} value={r} />)}
             </datalist>
 
-            <label htmlFor="reward-description" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Description (optional)</label>
+            <label htmlFor="reward-description" className="text-xs font-medium text-ink/70 mb-1 block">Description (optional)</label>
             <textarea
               id="reward-description"
               rows={2}
@@ -504,7 +504,7 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
-                <label htmlFor="reward-cost" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Cost in points</label>
+                <label htmlFor="reward-cost" className="text-xs font-medium text-ink/70 mb-1 block">Cost in points</label>
                 <input
                   id="reward-cost"
                   type="number"
@@ -518,7 +518,7 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
                 />
               </div>
               <div>
-                <label htmlFor="reward-stock" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">How many are available</label>
+                <label htmlFor="reward-stock" className="text-xs font-medium text-ink/70 mb-1 block">How many are available</label>
                 <input
                   id="reward-stock"
                   type="number"
@@ -533,7 +533,7 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
               </div>
             </div>
 
-            <div className="text-xs font-medium text-[var(--ink)]/70 mb-1">Photo (optional)</div>
+            <div className="text-xs font-medium text-ink/70 mb-1">Photo (optional)</div>
             <div className="flex items-center gap-3">
               <div className="shop-photo w-20 shrink-0">
                 {shownPhoto ? (
@@ -559,7 +559,7 @@ export default function ShopClient({ role, initialItems, initialRedemptions, ini
               )}
             </div>
 
-            {error && <p className="text-xs text-red-600 mt-3" role="alert">{error}</p>}
+            {error && <p className="text-xs text-danger mt-3" role="alert">{error}</p>}
 
             <div className="flex flex-wrap justify-end gap-2 mt-6">
               <button type="button" className="btn btn-light btn-sm border border-[color:var(--line)]" onClick={closeDialogs}>Cancel</button>

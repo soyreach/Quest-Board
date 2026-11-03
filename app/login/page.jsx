@@ -137,21 +137,21 @@ export default function LoginPage() {
         {/* The board side: a pinned member card that fills in as you type */}
         <div className="hero-bg hidden md:flex flex-col justify-between p-10 text-white">
           <div className="relative flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-lg bg-[var(--paper)] grid place-content-center">
+            <span className="w-10 h-10 rounded-full bg-[var(--paper)] grid place-content-center">
               <TargetLogo className="w-6 h-6" />
             </span>
             <span className="font-display font-bold">Quest Board</span>
           </div>
 
           <div className="relative py-10">
-            <div className="member-card" style={{ rotate: "-2.5deg" }}>
+            <div className="member-card">
               <div className="pin" />
               <div className="flex items-center justify-between mb-5">
-                <span className="text-[0.65rem] font-bold tracking-[0.16em] uppercase text-[var(--ink)]/60">AUPP · Member card</span>
+                <span className="text-[0.65rem] font-bold tracking-[0.16em] uppercase text-ink/60">AUPP · Member card</span>
                 <span className="badge badge-quiet">{signingUp ? role : "Returning"}</span>
               </div>
-              <div className="text-[0.65rem] font-bold tracking-[0.16em] uppercase text-[var(--ink)]/50 mb-1">Name on certificates</div>
-              <div className={`font-hand text-2xl leading-tight min-h-[2rem] border-b border-dashed border-[color:var(--line)] pb-1 truncate ${signingUp && fullName ? "" : "text-[var(--ink)]/35"}`}>
+              <div className="text-[0.65rem] font-bold tracking-[0.16em] uppercase text-ink/50 mb-1">Name on certificates</div>
+              <div className={`font-display font-semibold text-2xl tracking-tight leading-tight min-h-[2rem] border-b border-dashed border-[color:var(--line)] pb-1 truncate ${signingUp && fullName ? "" : "text-ink/35"}`}>
                 {signingUp ? fullName || "Your name here" : "Welcome back"}
               </div>
               <div className="flex items-end justify-between mt-5">
@@ -163,7 +163,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <p className="relative font-hand text-lg text-white/80 leading-snug">
+          <p className="relative text-base text-white/75 leading-snug text-center">
             {signingUp
               ? "Every certificate starts as a blank card pinned to the board."
               : "Your quests are right where you pinned them."}
@@ -269,7 +269,7 @@ export default function LoginPage() {
 
               {passwordField}
 
-              {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+              {error && <p role="alert" className="text-sm text-danger">{error}</p>}
 
               <button className="btn btn-primary w-full" type="submit" disabled={loading}>
                 {loading ? "Creating account…" : "Create account"}
@@ -298,7 +298,7 @@ export default function LoginPage() {
 
               {passwordField}
 
-              {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+              {error && <p role="alert" className="text-sm text-danger">{error}</p>}
 
               <button className="btn btn-primary w-full" type="submit" disabled={loading}>
                 {loading ? "Signing in…" : "Sign in"}

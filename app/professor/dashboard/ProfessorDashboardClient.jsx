@@ -372,7 +372,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                             <div className="grid grid-cols-3 gap-2">
                               <div className="metric">
                                 <div className="metric-label">Preliminary score</div>
-                                <div className="metric-value">{s.aiPreCheck.preliminaryScore}<span className="font-normal text-[var(--ink)]/60"> / 100</span></div>
+                                <div className="metric-value">{s.aiPreCheck.preliminaryScore}<span className="font-normal text-ink/60"> / 100</span></div>
                               </div>
                               <div className="metric">
                                 <div className="metric-label">Similarity</div>
@@ -387,7 +387,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                               </div>
                             </div>
                             {s.aiPreCheck.feedbackSummary && (
-                              <div className="rounded-[10px] border border-[color:var(--line)] p-3 text-sm">
+                              <div className="rounded-xl border border-[color:var(--line)] p-3 text-sm">
                                 <div className="metric-label font-semibold mb-0.5">
                                   {s.aiPreCheck.fileFeedback?.length > 1 ? "AI feedback · overall" : "AI feedback"}
                                 </div>
@@ -397,20 +397,20 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                             {/* One comment per file. A single file's comment would only repeat the overall one. */}
                             {s.aiPreCheck.fileFeedback?.length > 1 &&
                               s.aiPreCheck.fileFeedback.map((f, i) => (
-                                <div key={i} className="rounded-[10px] border border-[color:var(--line)] p-3 text-sm">
+                                <div key={i} className="rounded-xl border border-[color:var(--line)] p-3 text-sm">
                                   <div className="metric-label font-semibold mb-0.5 flex items-center gap-1.5 min-w-0">
                                     <FileText size={12} aria-hidden="true" className="shrink-0" />
                                     <span className="truncate">File {i + 1} · {f.fileName}</span>
                                   </div>
-                                  <p className={f.analyzed ? "" : "text-[var(--ink)]/60 italic"}>{f.feedback}</p>
+                                  <p className={f.analyzed ? "" : "text-ink/60"}>{f.feedback}</p>
                                 </div>
                               ))}
                             {s.aiPreCheck.aiLikelihoodScore != null && (
-                              <div className="rounded-[10px] bg-amber-50 p-3 text-sm">
-                                <div className="text-xs font-semibold text-amber-800 mb-0.5">
+                              <div className="rounded-xl bg-warn-soft p-3 text-sm">
+                                <div className="text-xs font-semibold text-warn mb-0.5">
                                   AI-content likelihood (heuristic): {s.aiPreCheck.aiLikelihoodScore}%
                                 </div>
-                                <p className="text-xs text-amber-800/80">{s.aiPreCheck.aiLikelihoodNote}</p>
+                                <p className="text-xs text-warn">{s.aiPreCheck.aiLikelihoodNote}</p>
                               </div>
                             )}
                           </div>
@@ -440,7 +440,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                         className="field mb-3"
                       />
 
-                      {reviewErrors[s._id] && <p className="text-xs text-red-600 mb-3">{reviewErrors[s._id]}</p>}
+                      {reviewErrors[s._id] && <p className="text-xs text-danger mb-3">{reviewErrors[s._id]}</p>}
 
                       <div className="flex flex-wrap items-center gap-2">
                         <label className="quiet-btn cursor-pointer min-w-0">
@@ -484,7 +484,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
           ) : filteredQuests.length === 0 ? (
             <p className="empty-note">No {questFilter} quests right now.</p>
           ) : (
-            <div className="row-list max-h-[560px] overflow-y-auto overscroll-contain rounded-b-[14px]">
+            <div className="row-list max-h-[560px] overflow-y-auto overscroll-contain rounded-b-2xl">
               {filteredQuests.map((q) => {
                 const expired = isExpired(q);
                 return (
@@ -499,7 +499,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                     <div className="flex items-center justify-between gap-2 mt-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className={`badge ${expired ? "badge-quiet" : "badge-ok"}`}>{expired ? "Expired" : q.status}</span>
-                        <span className={`text-xs inline-flex items-center gap-1 ${expired ? "text-red-600 font-medium" : "text-[var(--ink)]/70"}`}>
+                        <span className={`text-xs inline-flex items-center gap-1 ${expired ? "text-danger font-medium" : "text-ink/70"}`}>
                           <CalendarDays size={12} aria-hidden="true" />
                           {q.deadline ? `${expired ? "Ended" : "Due"} ${formatDeadline(q.deadline)}` : "No deadline"}
                         </span>
@@ -534,7 +534,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
             <div className="flex items-start justify-between gap-4 px-8 pt-7 pb-4 border-b border-[color:var(--line)]">
               <div>
                 <h3 id="creator-title" className="font-display font-bold text-xl mb-1">Add a new quest</h3>
-                <p className="text-sm text-[var(--ink)]/70">Paste a syllabus excerpt and let AI draft the quest — then edit before you pin it.</p>
+                <p className="text-sm text-ink/70">Paste a syllabus excerpt and let AI draft the quest — then edit before you pin it.</p>
               </div>
               <button className="quiet-btn shrink-0" onClick={() => setCreatorOpen(false)} aria-label="Close">
                 <X size={16} aria-hidden="true" />
@@ -552,7 +552,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                   placeholder="Paste raw syllabus text here…"
                   className="field mb-3"
                 />
-                {convertError && <p className="text-xs text-red-600 mb-2">{convertError}</p>}
+                {convertError && <p className="text-xs text-danger mb-2">{convertError}</p>}
                 <button className="btn btn-sm btn-outline" onClick={convertSyllabus} disabled={converting || syllabusText.trim().length < 20}>
                   <Sparkles size={14} aria-hidden="true" />
                   {converting ? "Converting…" : draft ? "Regenerate with AI" : "Convert with AI"}
@@ -581,22 +581,22 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
               <section>
                 <div className="flex items-baseline justify-between gap-3 mb-2">
                   <span className="creator-label !mb-0">Rubric</span>
-                  <span className={`text-xs font-semibold tabular-nums ${draftRubricTotal === 100 ? "text-emerald-700" : "text-red-600"}`}>
+                  <span className={`text-xs font-semibold tabular-nums ${draftRubricTotal === 100 ? "text-success" : "text-danger"}`}>
                     Total {draftRubricTotal}% {draftRubricTotal === 100 ? "✓" : "· must equal 100%"}
                   </span>
                 </div>
-                <div className="rounded-[10px] border border-[color:var(--line)] divide-y divide-[color:var(--line)] bg-[#FFFEF0]">
+                <div className="rounded-xl border border-[color:var(--line)] divide-y divide-[color:var(--line)] bg-[var(--field)]">
                   {(draft.rubric || []).length === 0 && (
-                    <p className="text-sm text-[var(--ink)]/60 px-3 py-3">No criteria yet — add one below.</p>
+                    <p className="text-sm text-ink/60 px-3 py-3">No criteria yet — add one below.</p>
                   )}
                   {(draft.rubric || []).map((r, i) => (
                     <div key={r._key} className="flex items-start gap-2 px-3 py-2">
-                      <span className="text-xs text-[var(--ink)]/50 tabular-nums w-5 pt-2.5 shrink-0" aria-hidden="true">{i + 1}.</span>
+                      <span className="text-xs text-ink/50 tabular-nums w-5 pt-2.5 shrink-0" aria-hidden="true">{i + 1}.</span>
                       <AutoGrowTextarea
                         minRows={1}
                         aria-label={`Criterion ${i + 1}`}
                         placeholder="Describe what's assessed…"
-                        className="flex-1 min-w-0 bg-transparent text-sm leading-snug py-2 px-1 rounded-md focus:bg-white outline-none focus:ring-1 focus:ring-[color:var(--wood)]"
+                        className="flex-1 min-w-0 bg-transparent text-sm leading-snug py-2 px-1 rounded-md focus:bg-[var(--paper)] outline-none focus:ring-1 focus:ring-[color:var(--wood)]"
                         value={r.criterion}
                         onChange={(e) => updateRubricRow(r._key, { criterion: e.target.value })}
                       />
@@ -611,7 +611,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                           value={r.weightPoints}
                           onChange={(e) => updateRubricRow(r._key, { weightPoints: e.target.value })}
                         />
-                        <span className="text-xs text-[var(--ink)]/60">%</span>
+                        <span className="text-xs text-ink/60">%</span>
                         <button
                           type="button"
                           className="quiet-btn !px-1.5"
@@ -633,17 +633,17 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                 <span className="creator-label">Details</span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label htmlFor="quest-difficulty" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Difficulty</label>
+                    <label htmlFor="quest-difficulty" className="text-xs font-medium text-ink/70 mb-1 block">Difficulty</label>
                     <select id="quest-difficulty" className="field" value={draft.difficulty} onChange={(e) => setDraft({ ...draft, difficulty: e.target.value })}>
                       <option>Apprentice</option><option>Journeyman</option><option>Master</option>
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="quest-hours" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Estimated hours</label>
+                    <label htmlFor="quest-hours" className="text-xs font-medium text-ink/70 mb-1 block">Estimated hours</label>
                     <input id="quest-hours" className="field" value={draft.estimatedHours} onChange={(e) => setDraft({ ...draft, estimatedHours: Number(e.target.value) })} />
                   </div>
                   <div>
-                    <label htmlFor="quest-bounty" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Bounty points</label>
+                    <label htmlFor="quest-bounty" className="text-xs font-medium text-ink/70 mb-1 block">Bounty points</label>
                     <input
                       id="quest-bounty"
                       type="number"
@@ -657,7 +657,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                     />
                   </div>
                 </div>
-                <p className="text-xs text-[var(--ink)]/70 -mt-1">
+                <p className="text-xs text-ink/70 -mt-1">
                   You decide the bounty ({MIN_BOUNTY_POINTS}–{MAX_BOUNTY_POINTS} points).
                   {suggestedPoints != null && Number(draft.bountyPoints) !== suggestedPoints && (
                     <>
@@ -671,7 +671,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="quest-deadline" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Deadline (optional)</label>
+                    <label htmlFor="quest-deadline" className="text-xs font-medium text-ink/70 mb-1 block">Deadline (optional)</label>
                     <input
                       id="quest-deadline"
                       type="date"
@@ -681,10 +681,10 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
                     />
                   </div>
                   <div>
-                    <span className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Rubric file or image (optional)</span>
-                    <label className="field flex items-center gap-2 cursor-pointer hover:bg-white min-w-0">
-                      <Paperclip size={14} className="shrink-0 text-[var(--ink)]/60" aria-hidden="true" />
-                      <span className={`truncate ${newAttachment ? "" : "text-[var(--ink)]/60"}`}>
+                    <span className="text-xs font-medium text-ink/70 mb-1 block">Rubric file or image (optional)</span>
+                    <label className="field flex items-center gap-2 cursor-pointer hover:bg-[var(--paper)] min-w-0">
+                      <Paperclip size={14} className="shrink-0 text-ink/60" aria-hidden="true" />
+                      <span className={`truncate ${newAttachment ? "" : "text-ink/60"}`}>
                         {newAttachment?.name || "Choose a file…"}
                       </span>
                       <input type="file" className="sr-only" onChange={(e) => setNewAttachment(e.target.files?.[0] || null)} />
@@ -698,7 +698,7 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
 
             {draft && (
               <div className="px-8 py-4 border-t border-[color:var(--line)]">
-                {pinError && <p className="text-xs text-red-600 mb-2">{pinError}</p>}
+                {pinError && <p className="text-xs text-danger mb-2">{pinError}</p>}
                 <button className="btn btn-primary w-full" onClick={pinQuest} disabled={pinning}>
                   {pinning ? "Pinning…" : "Pin to board"}
                 </button>
@@ -713,9 +713,9 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
         {editingQuest && (
           <div className="w-[92vw] max-w-md plain-modal p-8" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display font-bold text-xl mb-1">Edit &quot;{editingQuest.title}&quot;</h3>
-            <p className="text-sm text-[var(--ink)]/70 mb-5">Update the bounty or deadline, or swap the attached file.</p>
+            <p className="text-sm text-ink/70 mb-5">Update the bounty or deadline, or swap the attached file.</p>
 
-            <label htmlFor="edit-bounty" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Bounty points</label>
+            <label htmlFor="edit-bounty" className="text-xs font-medium text-ink/70 mb-1 block">Bounty points</label>
             <input
               id="edit-bounty"
               type="number"
@@ -727,27 +727,27 @@ export default function ProfessorDashboardClient({ initialQuests, initialQueue }
               onChange={(e) => setEditPoints(e.target.value)}
               className="field mb-1"
             />
-            <p className="text-xs text-[var(--ink)]/70 mb-4">
+            <p className="text-xs text-ink/70 mb-4">
               Applies to approvals from now on. Students already approved keep the points they earned.
             </p>
 
-            <label className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Deadline</label>
+            <label className="text-xs font-medium text-ink/70 mb-1 block">Deadline</label>
             <input
               type="date"
               value={editDeadline}
               onChange={(e) => setEditDeadline(e.target.value)}
               className="field mb-3"
             />
-            <p className="text-xs text-[var(--ink)]/70 mb-4">Leave blank and save to remove the deadline entirely.</p>
+            <p className="text-xs text-ink/70 mb-4">Leave blank and save to remove the deadline entirely.</p>
 
-            <label className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Replace attached file</label>
+            <label className="text-xs font-medium text-ink/70 mb-1 block">Replace attached file</label>
             <input
               type="file"
               onChange={(e) => setEditAttachment(e.target.files?.[0] || null)}
               className="w-full text-sm mb-6"
             />
 
-            {editError && <p className="text-xs text-red-600 mb-3">{editError}</p>}
+            {editError && <p className="text-xs text-danger mb-3">{editError}</p>}
 
             <button className="btn btn-primary w-full" onClick={saveEdit} disabled={savingEdit}>
               {savingEdit ? "Saving…" : "Save changes"}

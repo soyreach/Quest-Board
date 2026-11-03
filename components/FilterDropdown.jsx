@@ -34,20 +34,20 @@ export default function FilterDropdown({ label, value, options, onChange, width 
         type="button"
         onClick={() => setOpen((o) => !o)}
         title={current?.label}
-        className="w-full text-sm rounded-full border border-black/10 pl-4 pr-3 py-2 bg-[var(--paper)] flex items-center justify-between gap-2 hover:border-black/25 transition-colors"
+        className="w-full text-sm rounded-full border border-ink/10 pl-4 pr-3 py-2 bg-[var(--paper)] flex items-center justify-between gap-2 hover:border-ink/25 transition-colors"
       >
         <span className="truncate">{current ? current.label : label}</span>
         <svg
           viewBox="0 0 20 20"
           fill="none"
-          className={`w-3.5 h-3.5 shrink-0 text-[var(--ink)]/70 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`w-3.5 h-3.5 shrink-0 text-ink/70 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         >
           <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 
       <div
-        className={`absolute left-0 top-[calc(100%+8px)] min-w-full w-max max-w-xs bg-[var(--paper)] rounded-xl border border-black/10 shadow-xl p-1.5 z-30 origin-top transition-[opacity,transform,visibility] duration-[180ms] ease-[var(--ease-out)] ${
+        className={`absolute left-0 top-[calc(100%+8px)] min-w-full w-max max-w-xs bg-[var(--paper)] rounded-2xl border border-[color:var(--line)] shadow-[var(--shadow-pop)] p-1.5 z-30 origin-top transition-[opacity,transform,visibility] duration-[180ms] ease-[var(--ease-out)] ${
           open ? "opacity-100 scale-100 translate-y-0" : "invisible opacity-0 scale-95 -translate-y-1 pointer-events-none"
         }`}
       >
@@ -57,7 +57,7 @@ export default function FilterDropdown({ label, value, options, onChange, width 
             type="button"
             onClick={() => { onChange(o.value); setOpen(false); }}
             className={`w-full text-left px-3.5 py-2 text-sm rounded-xl transition-colors ${
-              o.value === value ? "bg-[var(--indigo-soft)] text-[var(--violet-2)] font-medium" : "hover:bg-black/[0.04]"
+              o.value === value ? "bg-[var(--indigo-soft)] text-[var(--violet-2)] font-medium" : "hover:bg-ink/[0.04]"
             }`}
           >
             {o.label}

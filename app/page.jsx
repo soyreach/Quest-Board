@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { Gift } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import ScrollButton from "@/components/ScrollButton";
-import ScrollReveal from "@/components/ScrollReveal";
 import { getBoardStats, getMonthlyLeaderboard, getShopItems, getTopQuest } from "@/lib/queries";
 import { TIERS, currentTier } from "@/lib/tiers";
 
@@ -63,16 +62,15 @@ export default async function HomePage() {
 
   return (
     <div className="page-enter">
-      <ScrollReveal />
       <div className="hero-bg text-white -mt-24">
-        <div className="max-w-4xl mx-auto px-6 pt-40 pb-24 relative flex flex-col items-center text-center">
-          <span className="hero-rise badge bg-white/10 border border-white/20 text-white/90 mb-6">
-            Built for AUPP · open to any student or faculty account
+        <div className="max-w-4xl mx-auto px-6 pt-44 pb-28 relative flex flex-col items-center text-center">
+          <span className="hero-rise hero-kicker mb-7">
+            Built for AUPP<span className="hidden sm:inline">&nbsp;· open to any student or faculty account</span>
           </span>
-          <h1 className="hero-rise font-display font-bold text-4xl md:text-6xl leading-[1.08] mb-6 max-w-3xl" style={{ "--i": 1 }}>
+          <h1 className="hero-rise font-display font-bold text-4xl md:text-6xl leading-[1.05] tracking-[-0.03em] mb-6 max-w-3xl" style={{ "--i": 1 }}>
             Turn theoretical classwork into CV-ready credentials
           </h1>
-          <p className="hero-rise text-white/70 text-lg mb-9 max-w-xl" style={{ "--i": 2 }}>
+          <p className="hero-rise text-white/75 text-lg leading-relaxed mb-10 max-w-xl" style={{ "--i": 2 }}>
             Professors post real project work as quests. Students complete them for bounty
             points, climb the leaderboard and trade points for rewards. The school verifies the
             skill and backs it with a certificate — no open marketplace, no spam, just your own
@@ -81,9 +79,9 @@ export default async function HomePage() {
           <div className="hero-rise flex flex-wrap justify-center gap-4" style={{ "--i": 3 }}>
             <ScrollButton targetId="how-it-works" className="btn btn-light">See how it works</ScrollButton>
           </div>
-          <div className="hero-rise mt-16 pt-8 border-t border-white/10 w-full flex flex-col items-center gap-3" style={{ "--i": 4 }}>
-            <span className="text-white/70 text-xs uppercase tracking-wide">Quests currently posted across</span>
-            <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-white/75 text-sm">
+          <div className="hero-rise mt-20 pt-8 border-t border-white/10 w-full flex flex-col items-center gap-3" style={{ "--i": 4 }}>
+            <span className="text-white/60 text-xs font-semibold uppercase tracking-[0.14em]">Quests currently posted across</span>
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-white/75 text-sm">
               <span>CS301 · Systems</span>
               <span>ECON210 · Applied Econ</span>
               <span>DES150 · Interaction Design</span>
@@ -97,13 +95,13 @@ export default async function HomePage() {
       <div className="max-w-6xl mx-auto px-6 py-24">
         <div className="grid md:grid-cols-2 gap-14 items-center">
           <div data-reveal>
-            <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">
+            <span className="text-xs font-bold tracking-widest uppercase text-ink/70">
               AUPP · Exercises with real bounties
             </span>
             <h2 className="font-display font-bold text-4xl md:text-5xl leading-[1.1] mt-3 mb-5">
               Pick a quest. Build something real. <span className="md:block">Earn your tier.</span>
             </h2>
-            <p className="text-[var(--ink)]/75 leading-relaxed mb-8 max-w-md">
+            <p className="text-ink/75 leading-relaxed mb-8 max-w-md">
               Professors pin exercises with bounty points. Students take them on, hand in their
               work, and climb from Bronze to Gold.
             </p>
@@ -113,21 +111,21 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div data-reveal className="paper-note" style={{ rotate: "-1.4deg", "--delay": "80ms" }}>
+          <div data-reveal className="paper-note" style={{ "--delay": "80ms" }}>
             <div className="pin" />
             {quest && <div className="stamp">{quest.bountyPoints}<small>PTS</small></div>}
-            <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">Quest of the week</span>
+            <span className="text-xs font-bold tracking-widest uppercase text-ink/70">Quest of the week</span>
             {quest ? (
               <>
                 <h3 className="font-display font-bold text-2xl mt-2 mb-1 pr-16">{quest.title}</h3>
-                <div className="text-sm text-[var(--ink)]/70">{quest.course}</div>
-                <p className="text-[var(--ink)]/70 my-4">{blurb}</p>
+                <div className="text-sm text-ink/70">{quest.course}</div>
+                <p className="text-ink/70 my-4">{blurb}</p>
                 <span className={`tape ${TAPE[quest.difficulty] || "tape-j"}`}>{quest.difficulty}</span>
               </>
             ) : (
               <>
                 <h3 className="font-display font-bold text-2xl mt-2 mb-1">No open quests yet</h3>
-                <p className="text-[var(--ink)]/70 my-4">Professors are still pinning exercises. Check back soon.</p>
+                <p className="text-ink/70 my-4">Professors are still pinning exercises. Check back soon.</p>
               </>
             )}
           </div>
@@ -137,67 +135,57 @@ export default async function HomePage() {
       <section id="how-it-works" className="max-w-6xl mx-auto px-6 pb-24 scroll-mt-28">
         <div data-reveal className="flex flex-wrap items-end justify-between gap-4 mb-8">
           <div>
-            <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">How it works</span>
+            <span className="text-xs font-bold tracking-widest uppercase text-ink/70">How it works</span>
             <h2 className="font-display font-bold text-3xl md:text-4xl mt-2">The life of a quest</h2>
           </div>
-          <p className="font-hand text-lg text-[var(--ink)]/75 max-w-xs md:text-right">
-            Three pieces of paper, one pin each. Follow the string.
+          <p className="text-sm text-ink/70 max-w-xs md:text-right">
+            Three steps, one thread, from brief to signed-off credit.
           </p>
         </div>
 
         <div data-reveal className="corkboard">
           <div className="journey">
-            <svg className="journey-string" viewBox="0 0 300 44" preserveAspectRatio="none" aria-hidden="true">
-              <path
-                d="M50 0 Q100 40 150 0 Q200 40 250 0"
-                fill="none"
-                stroke="#B33A26"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-                opacity="0.75"
-              />
-            </svg>
+            <div className="journey-string" aria-hidden="true" />
 
             {/* 1 — the professor pins it */}
-            <article data-reveal className="journey-note paper-note index-card" style={{ rotate: "-1.6deg", "--delay": "120ms" }}>
+            <article data-reveal className="journey-note paper-note index-card" style={{ "--delay": "120ms" }}>
               <div className="pin" />
               <div className="step-label mb-4"><b>01</b> A professor pins it</div>
-              <div className="stamp" style={{ top: 44 }}>150<small>PTS</small></div>
-              <div className="text-xs text-[var(--ink)]/70 pl-9">CS301 · Systems</div>
-              <h3 className="font-display font-bold text-xl leading-snug mt-1 mb-3 pl-9 pr-14">Write a tiny Unix shell</h3>
-              <p className="text-sm leading-[28px] text-[var(--ink)]/75 pl-9">
+              <div className="stamp">150<small>PTS</small></div>
+              <div className="text-xs text-ink/70">CS301 · Systems</div>
+              <h3 className="font-display font-bold text-xl leading-snug mt-1 mb-3 pr-16">Write a tiny Unix shell</h3>
+              <p className="text-sm leading-relaxed text-ink/75 mb-4">
                 A syllabus topic, turned into a brief with a rubric, a difficulty and a bounty.
               </p>
-              <div className="pl-9 mt-3"><span className="tape tape-j">Journeyman</span></div>
+              <div className="mt-auto"><span className="tape tape-j">Journeyman</span></div>
             </article>
 
             {/* 2 — a student works it */}
-            <article data-reveal className="journey-note sticky-note" style={{ rotate: "1.8deg", "--delay": "200ms" }}>
+            <article data-reveal className="journey-note sticky-note" style={{ "--delay": "200ms" }}>
               <div className="pin" />
-              <div className="step-label mb-3"><b>02</b> A student takes it on</div>
+              <div className="step-label mb-4"><b>02</b> A student takes it on</div>
               <ul className="hand-list space-y-0.5">
                 <li><s>read the brief + rubric</s></li>
                 <li><s>ask the sidekick about pipes</s></li>
                 <li><s>fork() keeps eating my prompt??</s></li>
                 <li>hand in v2 before Friday →</li>
               </ul>
-              <p className="text-sm text-[var(--ink)]/75 mt-4">
+              <p className="text-sm text-ink/75 mt-auto pt-4">
                 They pick what fits their goals, work it with the AI sidekick, and upload their work.
               </p>
             </article>
 
             {/* 3 — faculty signs it off */}
-            <article data-reveal className="journey-note slip" style={{ rotate: "-0.8deg", "--delay": "280ms" }}>
+            <article data-reveal className="journey-note slip" style={{ "--delay": "280ms" }}>
               <div className="pin" />
               <div className="step-label mb-4"><b>03</b> Faculty signs it off</div>
               <div className="flex items-center justify-between gap-3 mb-4">
                 <span className="approved-stamp">APPROVED</span>
                 <span className="font-display font-bold text-2xl text-gold-ink">+150</span>
               </div>
-              <div className="border-t border-dashed border-[color:var(--line)] pt-3">
-                <div className="text-[0.7rem] font-bold tracking-widest uppercase text-[var(--ink)]/60 mb-1">Line for your CV</div>
-                <p className="text-sm italic text-[var(--ink)]/80">
+              <div className="mt-auto border-t border-[color:var(--line)] pt-4">
+                <div className="text-[0.7rem] font-bold tracking-widest uppercase text-ink/60 mb-1">Line for your CV</div>
+                <p className="text-sm text-ink/80">
                   &ldquo;Completed &lsquo;Write a tiny Unix shell&rsquo; for CS301, earning 150 bounty points on faculty review.&rdquo;
                 </p>
               </div>
@@ -210,11 +198,11 @@ export default async function HomePage() {
         <div data-reveal className="ledger">
           <div className="grid lg:grid-cols-[1fr_1.3fr]">
             <div className="p-8 md:p-10 lg:border-r border-[color:var(--line)]">
-              <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">The climb</span>
+              <span className="text-xs font-bold tracking-widest uppercase text-ink/70">The climb</span>
               <h2 className="font-display font-bold text-3xl md:text-4xl leading-[1.1] mt-2 mb-4">
                 Points add up to a signed certificate
               </h2>
-              <p className="text-[var(--ink)]/75 leading-relaxed mb-7 max-w-sm">
+              <p className="text-ink/75 leading-relaxed mb-7 max-w-sm">
                 Every approved quest moves you along the ledger. Reach Gold and the school
                 committee signs a certificate with your name on it.
               </p>
@@ -230,7 +218,7 @@ export default async function HomePage() {
                     <div className="seal" style={{ "--seal": t.color }} aria-hidden="true">{t.name[0]}</div>
                     <div className="font-display font-semibold text-lg mt-4">{t.name}</div>
                     <div className="text-sm font-medium tabular-nums">{t.at.toLocaleString("en-US")} pts</div>
-                    <div className="text-xs text-[var(--ink)]/70 mt-1">
+                    <div className="text-xs text-ink/70 mt-1">
                       {i === TIERS.length - 1
                         ? `+${t.bonus} bonus · certificate`
                         : t.bonus ? `+${t.bonus} bonus pts` : "Your first tier"}
@@ -240,12 +228,12 @@ export default async function HomePage() {
               </ol>
 
               {stats && (
-                <div className="tally mt-10 pt-6 border-t border-dashed border-[color:var(--line)] text-center text-lg">
-                  <span className="text-[var(--ink)]/60 text-base">On the board right now: </span>
+                <div className="tally mt-10 pt-6 border-t border-[color:var(--line)] text-center">
+                  <span className="text-ink/60 text-base">On the board right now: </span>
                   <span className="whitespace-nowrap"><Tally n={stats.openQuests} /> {stats.openQuests} {stats.openQuests === 1 ? "quest" : "quests"} pinned</span>
-                  <span className="text-[var(--ink)]/40"> · </span>
+                  <span className="text-ink/40"> · </span>
                   <span className="whitespace-nowrap">{stats.pointsAwarded.toLocaleString("en-US")} pts awarded</span>
-                  <span className="text-[var(--ink)]/40"> · </span>
+                  <span className="text-ink/40"> · </span>
                   <span className="whitespace-nowrap">{stats.certificates} {stats.certificates === 1 ? "certificate" : "certificates"} signed</span>
                 </div>
               )}
@@ -257,19 +245,19 @@ export default async function HomePage() {
       <section className="max-w-6xl mx-auto px-6 pb-28">
         <div data-reveal className="flex flex-wrap items-end justify-between gap-4 mb-8">
           <div>
-            <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">Beyond the certificate</span>
+            <span className="text-xs font-bold tracking-widest uppercase text-ink/70">Beyond the certificate</span>
             <h2 className="font-display font-bold text-3xl md:text-4xl mt-2">Spend your points. Keep your rank.</h2>
           </div>
-          <p className="font-hand text-lg text-[var(--ink)]/75 max-w-xs md:text-right">
+          <p className="text-sm text-ink/70 max-w-xs md:text-right">
             Buying a hoodie never costs you a place on the leaderboard.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           <div data-reveal className="ledger p-8 flex flex-col">
-            <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">The exchange shop</span>
+            <span className="text-xs font-bold tracking-widest uppercase text-ink/70">The exchange shop</span>
             <h3 className="font-display font-bold text-2xl mt-2 mb-2">Trade points for real rewards</h3>
-            <p className="text-[var(--ink)]/75 leading-relaxed mb-5">
+            <p className="text-ink/75 leading-relaxed mb-5">
               The school committee stocks the shelf. Exchange your points, then collect your reward from them.
             </p>
             {rewards.length === 0 ? (
@@ -300,9 +288,9 @@ export default async function HomePage() {
           </div>
 
           <div data-reveal className="ledger p-8 flex flex-col" style={{ "--delay": "80ms" }}>
-            <span className="text-xs font-bold tracking-widest uppercase text-[var(--ink)]/70">The leaderboard</span>
+            <span className="text-xs font-bold tracking-widest uppercase text-ink/70">The leaderboard</span>
             <h3 className="font-display font-bold text-2xl mt-2 mb-2">See who&apos;s on top this month</h3>
-            <p className="text-[var(--ink)]/75 leading-relaxed mb-5">
+            <p className="text-ink/75 leading-relaxed mb-5">
               A new race starts on the 1st of every month, so anyone can take first place.
             </p>
             {leaders.length === 0 ? (

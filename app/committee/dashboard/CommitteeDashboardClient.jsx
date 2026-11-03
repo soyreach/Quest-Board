@@ -130,10 +130,10 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
         </div>
         <div>
           <div className="text-sm font-semibold tabular-nums">
-            {s.bountyPoints.toLocaleString("en-US")} <span className="font-normal text-[var(--ink)]/60">pts</span>
+            {s.bountyPoints.toLocaleString("en-US")} <span className="font-normal text-ink/60">pts</span>
           </div>
           {!canIssue && (
-            <div className="h-1.5 rounded-full bg-black/[0.08] mt-1.5 overflow-hidden" aria-label={`${toGold}% of the way to Gold`}>
+            <div className="h-1.5 rounded-full bg-ink/[0.08] mt-1.5 overflow-hidden" aria-label={`${toGold}% of the way to Gold`}>
               <div className="h-full rounded-full" style={{ width: `${toGold}%`, background: tier?.color || "var(--wood)" }} />
             </div>
           )}
@@ -153,7 +153,7 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
   }
 
   const columnHeads = (
-    <div className="hidden md:grid grid-cols-[minmax(0,1fr)_110px_150px_auto] gap-3 px-5 py-2.5 bg-[var(--lavender)] text-[0.7rem] font-bold tracking-wider uppercase text-[var(--ink)]/60">
+    <div className="hidden md:grid grid-cols-[minmax(0,1fr)_110px_150px_auto] gap-3 px-5 py-2.5 bg-[var(--lavender)] text-[0.7rem] font-bold tracking-wider uppercase text-ink/60">
       <span>Student</span><span>Tier</span><span>Points</span><span className="text-right">Actions</span>
     </div>
   );
@@ -251,7 +251,7 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
                         {formatDate(a.issuedAt)}
                         {a.type === "certificate" && a.reward ? ` · Reward: ${a.reward}` : ""}
                       </div>
-                      {a.note && <p className="text-sm italic text-[var(--ink)]/70 mt-1">&ldquo;{a.note}&rdquo;</p>}
+                      {a.note && <p className="text-sm text-ink/70 mt-1">&ldquo;{a.note}&rdquo;</p>}
                     </div>
                     {a.type === "certificate" && (
                       <button className="quiet-btn" onClick={() => downloadAward(a)} disabled={busyId === a._id}>
@@ -272,13 +272,13 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
             <h3 className="font-display font-semibold text-xl mb-1">
               {dialog.mode === "certificate" ? "Issue certificate" : "Send a reward"}
             </h3>
-            <p className="text-sm text-[var(--ink)]/70 mb-5">
+            <p className="text-sm text-ink/70 mb-5">
               {dialog.student.name} · {dialog.student.bountyPoints.toLocaleString("en-US")} points
             </p>
 
             {dialog.mode === "certificate" && (
               <>
-                <label htmlFor="cert-name" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Name on the certificate</label>
+                <label htmlFor="cert-name" className="text-xs font-medium text-ink/70 mb-1 block">Name on the certificate</label>
                 <input
                   id="cert-name"
                   value={recipientName}
@@ -287,11 +287,11 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
                   required
                   className="field mb-1"
                 />
-                <p className="text-xs text-[var(--ink)]/70 mb-4">Check the spelling: this is printed exactly as written.</p>
+                <p className="text-xs text-ink/70 mb-4">Check the spelling: this is printed exactly as written.</p>
               </>
             )}
 
-            <label htmlFor="cert-reward" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">
+            <label htmlFor="cert-reward" className="text-xs font-medium text-ink/70 mb-1 block">
               {dialog.mode === "certificate" ? "Reward or gift (optional)" : "Reward"}
             </label>
             <input
@@ -308,7 +308,7 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
               {REWARD_IDEAS.map((r) => <option key={r} value={r} />)}
             </datalist>
 
-            <label htmlFor="cert-note" className="text-xs font-medium text-[var(--ink)]/70 mb-1 block">Note to the student (optional)</label>
+            <label htmlFor="cert-note" className="text-xs font-medium text-ink/70 mb-1 block">Note to the student (optional)</label>
             <textarea
               id="cert-note"
               rows={3}
@@ -318,7 +318,7 @@ export default function CommitteeDashboardClient({ initialStudents, initialAward
               className="field mb-1"
             />
 
-            {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
+            {error && <p className="text-xs text-danger mt-2">{error}</p>}
 
             <div className="flex flex-wrap justify-end gap-2 mt-5">
               {dialog.mode === "certificate" && (

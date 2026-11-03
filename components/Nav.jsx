@@ -9,6 +9,7 @@ import { getSavedAccounts, removeSavedAccount } from "@/lib/savedAccounts";
 import { useLingering } from "@/lib/useLingering";
 import NotificationBell from "@/components/NotificationBell";
 import TargetLogo from "@/components/TargetLogo";
+import ThemePicker from "@/components/ThemePicker";
 
 const BASE_LINKS = [
   { href: "/board", label: "Board" },
@@ -118,15 +119,15 @@ export default function Nav() {
         hidden ? "opacity-0 -translate-y-6 pointer-events-none" : "opacity-100 translate-y-0"
       }`}
     >
-      <div className="w-full max-w-5xl bg-[var(--navy)] border border-white/10 rounded-full shadow-[0_20px_50px_-15px_rgba(59,46,35,0.55)] px-3 sm:px-5 h-14 flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2 shrink-0">
+      <div className="w-full max-w-5xl bg-[var(--navy)] border border-white/10 rounded-full shadow-[var(--shadow-pop)] px-2 h-14 grid grid-cols-[1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <Link href="/" className="flex items-center gap-2.5 shrink-0 rounded-full pr-2 justify-self-start">
           <span
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            className="w-10 h-10 rounded-full flex items-center justify-center"
             style={{ background: "var(--paper)" }}
           >
             <TargetLogo className="w-[22px] h-[22px]" />
           </span>
-          <span className="font-display font-black text-white text-[15px] tracking-tight hidden sm:inline">
+          <span className="font-display font-bold text-white text-[15px] tracking-tight hidden sm:inline">
             Quest Board
           </span>
         </Link>
@@ -144,10 +145,11 @@ export default function Nav() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2 relative shrink-0">
+        <div className="flex items-center gap-2 relative shrink-0 justify-self-end">
+          <ThemePicker closeSignal={accountOpen || menuOpen} onOpen={() => { setAccountOpen(false); setMenuOpen(false); }} />
           <button
             type="button"
-            className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-white bg-white/10 hover:bg-white/20 transition-colors"
+            className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-white bg-white/10 hover:bg-[var(--paper)]/20 transition-colors"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
@@ -182,7 +184,7 @@ export default function Nav() {
                 {accountShown && (
                   <div
                     data-closing={accountOpen ? undefined : ""}
-                    className="pop account-menu absolute top-14 right-0 w-80 max-w-[calc(100vw-2rem)] bg-[var(--paper)] text-[var(--ink)] rounded-xl shadow-xl border border-[color:var(--line)] z-50 overflow-hidden">
+                    className="pop account-menu absolute top-14 right-0 w-80 max-w-[calc(100vw-2rem)] bg-[var(--paper)] text-[var(--ink)] rounded-2xl shadow-[var(--shadow-pop)] border border-[color:var(--line)] z-50 overflow-hidden">
                     {switchView ? (
                       <div key="switch" className="view-forward">
                         <button
@@ -203,7 +205,7 @@ export default function Nav() {
                               <div key={a.email} className="flex items-center gap-1">
                                 <button
                                   type="button"
-                                  className="flex-1 min-w-0 flex items-center gap-3 text-left px-2 py-2 rounded-lg text-sm hover:bg-[var(--lavender)] transition"
+                                  className="flex-1 min-w-0 flex items-center gap-3 text-left px-2 py-2 rounded-xl text-sm hover:bg-[var(--lavender)] transition"
                                   disabled={switching}
                                   onClick={() => switchTo(a)}
                                 >
@@ -234,7 +236,7 @@ export default function Nav() {
                           <span className="account-avatar w-11 h-11 text-base" aria-hidden="true">{initial}</span>
                           <div className="min-w-0">
                             <div className="font-semibold truncate">{displayName}</div>
-                            <div className="text-sm text-[var(--ink)]/70 truncate">@{handle}</div>
+                            <div className="text-sm text-ink/70 truncate">@{handle}</div>
                             {hubHref && (
                               <Link href={hubHref} className="file-link mt-1.5" onClick={() => setAccountOpen(false)}>
                                 View your hub
@@ -265,7 +267,7 @@ export default function Nav() {
               </div>
             </>
           ) : (
-            <button className="btn btn-light btn-sm" onClick={() => router.push("/login")}>
+            <button className="btn btn-light btn-sm !rounded-full" onClick={() => router.push("/login")}>
               Sign in
             </button>
           )}
@@ -276,7 +278,7 @@ export default function Nav() {
         <div
           id="mobile-menu"
           data-closing={menuOpen ? undefined : ""}
-          className="pop mobile-menu md:hidden absolute left-4 right-4 top-[4.25rem] bg-[var(--paper)] text-[var(--ink)] rounded-xl shadow-xl border border-[color:var(--line)] p-2"
+          className="pop mobile-menu md:hidden absolute left-4 right-4 top-[4.25rem] bg-[var(--paper)] text-[var(--ink)] rounded-2xl shadow-[var(--shadow-pop)] border border-[color:var(--line)] p-2"
         >
           {links.map((l) => (
             <Link key={l.href} href={l.href} aria-current={pathname === l.href ? "page" : undefined}>
